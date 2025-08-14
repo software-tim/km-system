@@ -40,3 +40,75 @@ node_modules/
 *.tmp
 *.bak
 *.zip
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Environment
+.env
+.env.local
+*.local
+
+# Azure
+publish-profile.xml
+*.PublishSettings
+local.settings.json
+deploy.zip
+deployment-info.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Azure publish profiles - NEVER COMMIT
+publish-profile.xml
+*.PublishSettings
+
+# Python environments
+km-system/
+
+# Deployment files
+deploy.zip
+
+# Azure publish profiles - NEVER COMMIT THESE
+publish-profile.xml
+*.PublishSettings
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Deployment
+deploy.zip
+deployment-info.json
+
+# IDE
+.vscode/
+.idea/
+
+# Accidentally cloned repo
+km-system/
