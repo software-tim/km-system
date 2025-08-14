@@ -1,0 +1,64 @@
+﻿name: Deploy All KM Services
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_sql:
+        description: 'Deploy km-mcp-sql'
+        required: true
+        type: boolean
+        default: true
+      deploy_docs:
+        description: 'Deploy km-mcp-sql-docs'
+        required: true
+        type: boolean
+        default: true
+
+jobs:
+  deploy-km-sql:
+    if: ${{ inputs.deploy_sql }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Deploy km-mcp-sql
+      working-directory: ./km-mcp-sql
+      run: |
+        pip install -r requirements.txt
+        zip -r ../deploy-sql.zip . -x "*.git*" -x "__pycache__/*"
+    
+    - name: Deploy to Azure
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: km-mcp-sql
+        publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_KM_SQL }}
+        package: ./deploy-sql.zip
+
+  deploy-km-docs:
+    if: ${{ inputs.deploy_docs }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Deploy km-mcp-sql-docs
+      working-directory: ./km-mcp-sql-docs
+      run: |
+        pip install -r requirements.txt
+        zip -r ../deploy-docs.zip . -x "*.git*" -x "__pycache__/*"
+    
+    - name: Deploy to Azure
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: km-mcp-sql-docs
+        publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_KM_DOCS }}
+        package: ./deploy-docs.zip
