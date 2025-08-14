@@ -1,6 +1,4 @@
-﻿# First, save the complete app.py content
-
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 KM-MCP-SQL Server - Knowledge Management SQL Interface
 FastAPI implementation for Azure SQL Database operations
@@ -310,9 +308,3 @@ if __name__ == "__main__":
         port=port,
         reload=debug_mode
     )
- | Out-File -FilePath app.py -Encoding utf8
-
-# Commit and push the updated app.py
-git add app.py
-git commit -m "Update app.py with complete FastAPI implementation"
-git push azure master

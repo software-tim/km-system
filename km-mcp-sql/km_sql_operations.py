@@ -125,7 +125,7 @@ class SQLOperations:
             @@VERSION AS version,
             @@SERVERNAME AS server_name,
             DB_NAME() AS current_database,
-            SYSTEM_USER AS current_user
+            SYSTEM_USER AS  [current_user]
         """
         
         try:
