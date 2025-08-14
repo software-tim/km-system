@@ -1,5 +1,5 @@
 ﻿# First, save the complete app.py content
-@'
+
 #!/usr/bin/env python3
 """
 KM-MCP-SQL Server - Knowledge Management SQL Interface
@@ -310,7 +310,7 @@ if __name__ == "__main__":
         port=port,
         reload=debug_mode
     )
-'@ | Out-File -FilePath app.py -Encoding utf8
+ | Out-File -FilePath app.py -Encoding utf8
 
 # Commit and push the updated app.py
 git add app.py
