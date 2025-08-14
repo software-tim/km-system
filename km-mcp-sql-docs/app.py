@@ -200,7 +200,49 @@ async def api_status():
     """API status endpoint"""
     return await health_check()
 
+
+@app.get("/debug-stats")
+async def debug_stats():
+    """Debug stats directly"""
+    import pyodbc
+    try:
+        conn_str = (
+            "DRIVER={ODBC Driver 17 for SQL Server};"
+            "SERVER=km-sql-server.database.windows.net;"
+            "DATABASE=km-db;"
+            "UID=kmadmin;"
+            "PWD=Km123456!"
+        )
+        conn = pyodbc.connect(conn_str)
+        cursor = conn.cursor()
+        
+        # Get count
+        cursor.execute("SELECT COUNT(*) FROM documents")
+        total = cursor.fetchone()[0]
+        
+        # Get classifications
+        cursor.execute("""
+            SELECT classification, COUNT(*) as cnt 
+            FROM documents 
+            GROUP BY classification
+        """)
+        classifications = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+        
+        return {
+            "total": total,
+            "classifications": [
+                {"class": row[0], "count": row[1]} 
+                for row in classifications
+            ]
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
+
