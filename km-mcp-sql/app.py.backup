@@ -1,0 +1,37 @@
+﻿from fastapi import FastAPI
+from datetime import datetime
+import os
+
+app = FastAPI(title="KM-MCP-SQL Server", version="1.0.0")
+
+@app.get("/")
+async def root():
+    return {
+        "service": "km-mcp-sql",
+        "status": "running",
+        "timestamp": datetime.utcnow().isoformat(),
+        "message": "KM-MCP-SQL Server is operational!",
+        "database": os.getenv("KM_SQL_DATABASE", "not configured"),
+        "server": os.getenv("KM_SQL_SERVER", "not configured")
+    }
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+
+@app.get("/api/status")
+async def status():
+    return {
+        "status": "online",
+        "service": "km-mcp-sql",
+        "database": {
+            "server": os.getenv("KM_SQL_SERVER", "not configured"),
+            "database": os.getenv("KM_SQL_DATABASE", "not configured"),
+            "user": os.getenv("KM_SQL_USERNAME", "not configured")
+        },
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

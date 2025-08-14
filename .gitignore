@@ -1,0 +1,42 @@
+﻿# Environment files
+.env
+*.env.local
+
+# Python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Azure
+.azure/
+*.PublishSettings
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# Node (if any)
+node_modules/
+
+# Temp files
+*.tmp
+*.bak
+*.zip
