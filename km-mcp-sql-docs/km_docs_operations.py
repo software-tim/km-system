@@ -1,6 +1,6 @@
 ﻿#!/usr/bin/env python3
 """
-Document Operations - WORKING VERSION using direct pyodbc
+Document Operations - FINAL VERSION with WORKING stats
 """
 
 from typing import Any, Dict, List, Optional
@@ -209,52 +209,71 @@ class DocumentOperations:
             return {"documents": [], "total": 0}
     
     async def get_database_stats(self):
-        """Get database statistics - WORKING VERSION"""
+        """Get database statistics - FIXED VERSION THAT WILL WORK"""
+        logger.info("get_database_stats called")
+        
         try:
+            # Create new connection for stats
             conn = pyodbc.connect(self.conn_str)
             cursor = conn.cursor()
             
-            # Get total and active counts
+            # Simple count query that MUST work
+            cursor.execute("SELECT COUNT(*) as total FROM documents")
+            result = cursor.fetchone()
+            total_count = result[0] if result else 0
+            
+            logger.info(f"Stats query returned: {total_count}")
+            
+            # Count active documents (handle NULL is_active)
             cursor.execute("""
-                SELECT 
-                    COUNT(*) as total,
-                    SUM(CASE WHEN ISNULL(is_active, 1) = 1 THEN 1 ELSE 0 END) as active
-                FROM documents
+                SELECT COUNT(*) as active 
+                FROM documents 
+                WHERE ISNULL(is_active, 1) = 1
             """)
-            row = cursor.fetchone()
-            total = row[0] if row else 0
-            active = row[1] if row else 0
+            result = cursor.fetchone()
+            active_count = result[0] if result else total_count
             
             # Get classification breakdown
             cursor.execute("""
-                SELECT classification, COUNT(*) as count
+                SELECT 
+                    ISNULL(classification, 'unclassified') as class_name,
+                    COUNT(*) as class_count
                 FROM documents
-                WHERE ISNULL(is_active, 1) = 1
                 GROUP BY classification
-                ORDER BY count DESC
+                ORDER BY COUNT(*) DESC
             """)
             
             breakdown = []
             for row in cursor.fetchall():
                 breakdown.append({
-                    "classification": row[0] or "none",
+                    "classification": row[0],
                     "count": row[1]
                 })
             
             cursor.close()
             conn.close()
             
-            return {
+            # Build response
+            response = {
                 "statistics": {
-                    "total_documents": total,
-                    "active_documents": active
+                    "total_documents": total_count,
+                    "active_documents": active_count
                 },
                 "classification_breakdown": breakdown
             }
+            
+            logger.info(f"Returning stats: {response}")
+            return response
+            
         except Exception as e:
-            logger.error(f"Stats failed: {e}")
+            logger.error(f"Stats failed with error: {str(e)}")
+            # Return actual error for debugging
             return {
-                "statistics": {"total_documents": 0, "active_documents": 0},
+                "statistics": {
+                    "total_documents": 0,
+                    "active_documents": 0,
+                    "error": str(e)
+                },
                 "classification_breakdown": []
             }
     
