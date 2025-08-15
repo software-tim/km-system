@@ -641,6 +641,57 @@ async def get_documents_for_search(request: Request):
                 "success": False
             }
         )
+@app.post("/tools/get-documents-for-search")
+async def get_documents_for_search(request: Request):
+    """Get all documents for search indexing and graph construction"""
+    try:
+        data = await request.json()
+        limit = data.get("limit", 100)  # Default limit
+        offset = data.get("offset", 0)   # For pagination
+        
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Get documents with content
+            cursor.execute("""
+                SELECT 
+                    id,
+                    title,
+                    content,
+                    file_path,
+                    file_type,
+                    created_at,
+                    updated_at
+                FROM documents 
+                WHERE is_active = 1 
+                ORDER BY updated_at DESC
+                OFFSET ? ROWS 
+                FETCH NEXT ? ROWS ONLY
+            """, (offset, limit))
+            
+            documents = []
+            for row in cursor.fetchall():
+                doc = {
+                    "id": row[0],
+                    "title": row[1],
+                    "content": row[2],
+                    "file_path": row[3],
+                    "file_type": row[4],
+                    "created_at": row[5].isoformat() if row[5] else None,
+                    "updated_at": row[6].isoformat() if row[6] else None
+                }
+                documents.append(doc)
+            
+            return {
+                "status": "success",
+                "total_documents": len(documents),
+                "documents": documents,
+                "limit": limit,
+                "offset": offset
+            }
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
