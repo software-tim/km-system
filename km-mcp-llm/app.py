@@ -4,15 +4,15 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 from datetime import datetime
 
-from km_phi4_config import settings
-from km_phi4_schemas import *
-from km_phi4_operations import Phi4Operations
+from km_llm_config import settings
+from km_llm_schemas import *
+from km_llm_operations import llmOperations
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="KM-MCP-PHI4 API",
+    title="km-mcp-llm API",
     description="AI-powered document analysis using Phi-4 model",
     version=settings.version
 )
@@ -25,12 +25,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-phi4_ops = Phi4Operations()
+llm_ops = llmOperations()
 
 @app.on_event("startup")
 async def startup_event():
-    logger.info("Starting KM-MCP-PHI4 service")
-    success = await phi4_ops.initialize_models()
+    logger.info("Starting km-mcp-llm service")
+    success = await llm_ops.initialize_models()
     if not success:
         logger.error("Failed to initialize models")
     logger.info("Service started")
@@ -43,7 +43,7 @@ async def root():
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KM-MCP-PHI4 AI Analysis</title>
+    <title>km-mcp-llm AI Analysis</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -196,7 +196,7 @@ async def root():
     <div class="container">
         <div class="header">
             <div class="icon">🧠</div>
-            <h1>KM-MCP-PHI4 AI Analysis <span class="ai-badge">AI POWERED</span></h1>
+            <h1>km-mcp-llm AI Analysis <span class="ai-badge">AI POWERED</span></h1>
         </div>
 
         <div class="status">
@@ -465,12 +465,12 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    docs_connected = await phi4_ops.check_docs_service()
-    model_loaded = phi4_ops.model is not None
+    docs_connected = await llm_ops.check_docs_service()
+    model_loaded = llm_ops.model is not None
     
     return ServiceHealth(
         status="healthy" if model_loaded else "initializing",
-        service="km-mcp-phi4",
+        service="km-mcp-llm",
         version=settings.version,
         model_loaded=model_loaded,
         docs_service_connected=docs_connected,
@@ -491,10 +491,10 @@ async def list_tools():
 @app.post("/tools/analyze-document")
 async def analyze_document(request: AnalyzeDocumentRequest):
     try:
-        if phi4_ops.model is None:
+        if llm_ops.model is None:
             raise HTTPException(status_code=503, detail="AI model not loaded yet")
         
-        result = await phi4_ops.analyze_document(request)
+        result = await llm_ops.analyze_document(request)
         return ToolResponse(success=True, result=result.dict(), processing_time=result.processing_time)
     
     except Exception as e:
@@ -504,10 +504,10 @@ async def analyze_document(request: AnalyzeDocumentRequest):
 @app.post("/tools/answer-question")
 async def answer_question(request: AnswerQuestionRequest):
     try:
-        if phi4_ops.model is None:
+        if llm_ops.model is None:
             raise HTTPException(status_code=503, detail="AI model not loaded yet")
         
-        result = await phi4_ops.answer_question(request)
+        result = await llm_ops.answer_question(request)
         return ToolResponse(success=True, result=result.dict(), processing_time=result.processing_time)
     
     except Exception as e:
@@ -517,10 +517,10 @@ async def answer_question(request: AnswerQuestionRequest):
 @app.post("/tools/summarize-content")
 async def summarize_content(request: SummarizeContentRequest):
     try:
-        if phi4_ops.model is None:
+        if llm_ops.model is None:
             raise HTTPException(status_code=503, detail="AI model not loaded yet")
         
-        result = await phi4_ops.summarize_content(request)
+        result = await llm_ops.summarize_content(request)
         return ToolResponse(success=True, result=result.dict(), processing_time=result.processing_time)
     
     except Exception as e:
@@ -530,10 +530,10 @@ async def summarize_content(request: SummarizeContentRequest):
 @app.post("/tools/extract-insights")
 async def extract_insights(request: ExtractInsightsRequest):
     try:
-        if phi4_ops.model is None:
+        if llm_ops.model is None:
             raise HTTPException(status_code=503, detail="AI model not loaded yet")
         
-        result = await phi4_ops.extract_insights(request)
+        result = await llm_ops.extract_insights(request)
         return ToolResponse(success=True, result=result.dict(), processing_time=result.processing_time)
     
     except Exception as e:
@@ -545,3 +545,5 @@ if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 8001))
     uvicorn.run(app, host="0.0.0.0", port=port)
+
+

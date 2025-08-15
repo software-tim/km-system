@@ -60,3 +60,4 @@ class ToolResponse(BaseModel):
     result: Any
     error: Optional[str] = None
     processing_time: Optional[float] = None
+

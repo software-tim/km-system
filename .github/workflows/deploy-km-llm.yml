@@ -1,14 +1,14 @@
-﻿name: Deploy km-mcp-phi4
+﻿name: Deploy km-mcp-llm
 
 on:
   push:
     branches: [master, main]
     paths:
-      - 'km-mcp-phi4/**'
+      - 'km-mcp-llm/**'
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: km-mcp-phi4
+  AZURE_WEBAPP_NAME: km-mcp-llm
 
 jobs:
   deploy:
@@ -23,7 +23,7 @@ jobs:
         python-version: '3.10'
     
     - name: Install dependencies and test
-      working-directory: ./km-mcp-phi4
+      working-directory: ./km-mcp-llm
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
@@ -34,16 +34,17 @@ jobs:
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_KM_PHI4 }}
+        publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_KM_LLM }}
         package: ./deploy-phi4.zip
     
     - name: Verify deployment
       run: |
         echo "Waiting for deployment..."
         sleep 60
-        response=$(curl -s -o /dev/null -w "%{http_code}" https://km-mcp-phi4.azurewebsites.net/health)
+        response=$(curl -s -o /dev/null -w "%{http_code}" https://km-mcp-llm.azurewebsites.net/health)
         if [ $response -eq 200 ]; then
           echo "✅ Deployment successful"
         else
           echo "⚠️ Health check status: $response"
         fi
+

@@ -9,12 +9,12 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import nltk
 
-from km_phi4_config import settings
-from km_phi4_schemas import *
+from km_llm_config import settings
+from km_llm_schemas import *
 
 logger = logging.getLogger(__name__)
 
-class Phi4Operations:
+class llmOperations:
     def __init__(self):
         self.model = None
         self.tokenizer = None
@@ -26,13 +26,13 @@ class Phi4Operations:
             logger.info("Initializing Phi-4 models...")
             
             self.tokenizer = AutoTokenizer.from_pretrained(
-                settings.phi4_model_name,
+                settings.llm_model_name,
                 trust_remote_code=True,
                 cache_dir=settings.cache_dir if settings.enable_model_cache else None
             )
             
             self.model = AutoModelForCausalLM.from_pretrained(
-                settings.phi4_model_name,
+                settings.llm_model_name,
                 torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
                 device_map="auto" if torch.cuda.is_available() else None,
                 trust_remote_code=True,
@@ -275,3 +275,4 @@ class Phi4Operations:
         except Exception as e:
             logger.error(f"Insight extraction failed: {e}")
             raise
+

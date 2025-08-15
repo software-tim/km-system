@@ -1,0 +1,58 @@
+﻿    async def get_database_stats(self):
+        """Get database statistics - FIXED VERSION"""
+        try:
+            conn = pyodbc.connect(self.conn_str)
+            cursor = conn.cursor()
+            
+            # Simple count that will definitely work
+            cursor.execute("SELECT COUNT(*) FROM documents")
+            total = cursor.fetchone()[0]
+            
+            # For active, check if column exists and handle NULLs
+            try:
+                cursor.execute("""
+                    SELECT COUNT(*) 
+                    FROM documents 
+                    WHERE ISNULL(is_active, 1) = 1
+                """)
+                active = cursor.fetchone()[0]
+            except:
+                # If is_active doesn't exist, all are active
+                active = total
+            
+            # Get classification breakdown - handle NULLs
+            cursor.execute("""
+                SELECT 
+                    ISNULL(classification, 'unclassified') as classification, 
+                    COUNT(*) as count
+                FROM documents
+                GROUP BY classification
+                ORDER BY count DESC
+            """)
+            
+            breakdown = []
+            for row in cursor.fetchall():
+                breakdown.append({
+                    "classification": row[0],
+                    "count": row[1]
+                })
+            
+            cursor.close()
+            conn.close()
+            
+            logger.info(f"Stats: {total} total, {active} active")
+            
+            return {
+                "statistics": {
+                    "total_documents": total,
+                    "active_documents": active
+                },
+                "classification_breakdown": breakdown
+            }
+        except Exception as e:
+            logger.error(f"Stats failed: {e}")
+            # Return zeros instead of error
+            return {
+                "statistics": {"total_documents": 0, "active_documents": 0},
+                "classification_breakdown": []
+            }

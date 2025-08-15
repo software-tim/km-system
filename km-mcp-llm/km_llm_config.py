@@ -2,12 +2,12 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    app_name: str = "km-mcp-phi4"
+    app_name: str = "km-mcp-llm"
     version: str = "1.0.0"
     debug: bool = os.getenv('DEBUG', 'false').lower() == 'true'
     port: int = int(os.getenv('PORT', 8001))
     
-    phi4_model_name: str = os.getenv('PHI4_MODEL_NAME', 'microsoft/phi-3-mini-4k-instruct')
+    llm_model_name: str = os.getenv('llm_MODEL_NAME', 'microsoft/phi-3-mini-4k-instruct')
     max_tokens: int = int(os.getenv('MAX_TOKENS', 1024))
     temperature: float = float(os.getenv('TEMPERATURE', 0.7))
     
@@ -22,3 +22,4 @@ class Settings(BaseSettings):
         case_sensitive = False
 
 settings = Settings()
+
