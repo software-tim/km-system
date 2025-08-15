@@ -578,6 +578,76 @@ async def get_database_stats():
             "error": str(e)
         }
 
+# Add this to your km-mcp-sql-docs app.py file
+
+@app.post("/tools/get-documents-for-search")
+async def get_documents_for_search(request: Request):
+    """Get all documents for search indexing"""
+    try:
+        data = await request.json()
+        limit = data.get("limit", 100)  # Default limit
+        offset = data.get("offset", 0)   # For pagination
+        
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Get documents with content
+            cursor.execute("""
+                SELECT 
+                    id,
+                    title,
+                    content,
+                    file_path,
+                    file_type,
+                    created_at,
+                    updated_at
+                FROM documents 
+                WHERE is_active = 1 
+                ORDER BY updated_at DESC
+                OFFSET ? ROWS 
+                FETCH NEXT ? ROWS ONLY
+            """, (offset, limit))
+            
+            documents = []
+            for row in cursor.fetchall():
+                doc = {
+                    "id": row[0],
+                    "title": row[1],
+                    "content": row[2] or "",  # Handle null content
+                    "file_path": row[3],
+                    "file_type": row[4],
+                    "created_at": row[5].isoformat() if row[5] else None,
+                    "updated_at": row[6].isoformat() if row[6] else None,
+                    "metadata": {
+                        "source": "km-mcp-sql-docs",
+                        "type": "document",
+                        "file_type": row[4]
+                    }
+                }
+                documents.append(doc)
+            
+            # Get total count
+            cursor.execute("SELECT COUNT(*) FROM documents WHERE is_active = 1")
+            total_count = cursor.fetchone()[0]
+            
+            return JSONResponse(content={
+                "success": True,
+                "documents": documents,
+                "total_count": total_count,
+                "returned_count": len(documents),
+                "offset": offset,
+                "limit": limit,
+                "has_more": (offset + len(documents)) < total_count
+            })
+            
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": f"Failed to retrieve documents: {str(e)}",
+                "success": False
+            }
+        )
 if __name__ == "__main__":
     import uvicorn
     import os

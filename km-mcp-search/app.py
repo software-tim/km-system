@@ -67,28 +67,80 @@ class SearchService:
         """Fetch documents from a data source"""
         try:
             async with aiohttp.ClientSession() as session:
-                # Try to get documents from the source
-                async with session.get(f"{source_url}/tools/database-stats", timeout=10) as response:
+                # Get documents from km-mcp-sql-docs
+                payload = {
+                    "limit": 100,  # Fetch up to 100 documents
+                    "offset": 0
+                }
+                
+                async with session.post(
+                    f"{source_url}/tools/get-documents-for-search",
+                    json=payload,
+                    timeout=30
+                ) as response:
                     if response.status == 200:
-                        stats = await response.json()
-                        doc_count = stats.get("total_documents", 0)
-                
-                # Get actual documents (this would need to be implemented in km-mcp-sql-docs)
-                # For now, we'll simulate document retrieval
-                documents = []
-                for i in range(min(doc_count, 50)):  # Limit for demo
-                    documents.append({
-                        "id": f"doc_{i}",
-                        "title": f"Document {i+1}",
-                        "content": f"Sample content for document {i+1}. This would contain the actual document text.",
-                        "metadata": {"source": "km-mcp-sql-docs", "type": "document"}
-                    })
-                
-                return documents
+                        result = await response.json()
+                        if result.get("success"):
+                            documents = []
+                            for doc in result.get("documents", []):
+                                # Ensure we have content to search
+                                content = doc.get("content", "")
+                                title = doc.get("title", f"Document {doc.get('id', 'Unknown')}")
+                                
+                                # Skip documents with no content
+                                if not content.strip():
+                                    content = f"Document: {title}. File: {doc.get('file_path', 'Unknown')}"
+                                
+                                documents.append({
+                                    "id": doc.get("id"),
+                                    "title": title,
+                                    "content": content,
+                                    "metadata": {
+                                        "source": "km-mcp-sql-docs",
+                                        "type": "document",
+                                        "file_type": doc.get("file_type"),
+                                        "file_path": doc.get("file_path"),
+                                        "created_at": doc.get("created_at"),
+                                        "updated_at": doc.get("updated_at")
+                                    }
+                                })
+                            
+                            print(f"Successfully fetched {len(documents)} documents from {source_url}")
+                            return documents
+                        else:
+                            print(f"API returned error: {result.get('error', 'Unknown error')}")
+                            return []
+                    else:
+                        print(f"HTTP error {response.status} from {source_url}")
+                        return []
                 
         except Exception as e:
             print(f"Error fetching documents from {source_url}: {e}")
-            return []
+            # Return sample documents if the real source fails (for testing)
+            return self.get_sample_documents()
+    
+    def get_sample_documents(self) -> List[Dict[str, Any]]:
+        """Fallback sample documents for testing"""
+        return [
+            {
+                "id": "sample_1",
+                "title": "Azure Deployment Guide",
+                "content": "This document covers deploying applications to Azure App Service. Topics include FastAPI deployment, environment configuration, and troubleshooting common issues.",
+                "metadata": {"source": "sample", "type": "document"}
+            },
+            {
+                "id": "sample_2", 
+                "title": "MCP Server Architecture",
+                "content": "Model Context Protocol servers provide standardized interfaces for AI applications. This includes document storage, search capabilities, and AI processing services.",
+                "metadata": {"source": "sample", "type": "document"}
+            },
+            {
+                "id": "sample_3",
+                "title": "Search Implementation",
+                "content": "Document search functionality using semantic and keyword algorithms. Includes OpenAI embeddings for semantic search and fuzzy matching for keyword search.",
+                "metadata": {"source": "sample", "type": "document"}
+            }
+        ]
     
     def calculate_keyword_score(self, query: str, text: str) -> float:
         """Calculate keyword-based relevance score"""
@@ -499,7 +551,9 @@ async def root():
                 <div class="endpoint">
                     <div class="method get">GET</div>
                     <div class="endpoint-content">
-                        <div class="endpoint-path">/health</div>
+                        <div class="endpoint-path">
+                            <a href="/health" target="_blank" style="color: #1f2937; text-decoration: none;">/health</a>
+                        </div>
                         <div class="endpoint-description">Health check and search service status</div>
                     </div>
                 </div>
@@ -531,7 +585,9 @@ async def root():
                 <div class="endpoint">
                     <div class="method get">GET</div>
                     <div class="endpoint-content">
-                        <div class="endpoint-path">/docs</div>
+                        <div class="endpoint-path">
+                            <a href="/docs" target="_blank" style="color: #1f2937; text-decoration: none;">/docs</a>
+                        </div>
                         <div class="endpoint-description">Interactive API documentation (Swagger UI)</div>
                     </div>
                 </div>
