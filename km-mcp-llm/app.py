@@ -281,15 +281,18 @@ ai_service = ExternalAIService()
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    """Beautiful HTML interface for the external AI service"""
+    """Clean MCP server interface matching the standard format"""
     
     # Check AI service status
     if ai_service.azure_available:
-        ai_status = "🟢 Azure OpenAI"
+        ai_status = "Connected"
+        ai_provider = "Azure OpenAI"
     elif ai_service.openai_available:
-        ai_status = "🟡 OpenAI API"
+        ai_status = "Connected"
+        ai_provider = "OpenAI API"
     else:
-        ai_status = "🔴 Not Configured"
+        ai_status = "Not Configured"
+        ai_provider = "None"
     
     html_content = f"""
     <!DOCTYPE html>
@@ -297,164 +300,264 @@ async def root():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>🤖 KM LLM Service</title>
+        <title>KM-MCP-LLM Server</title>
         <style>
             * {{ margin: 0; padding: 0; box-sizing: border-box; }}
             body {{ 
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 min-height: 100vh;
+                padding: 40px 20px;
+            }}
+            .container {{
+                max-width: 1000px;
+                margin: 0 auto;
+                background: white;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            }}
+            .header {{
+                background: white;
+                padding: 30px 40px;
+                border-bottom: 1px solid #e5e7eb;
+                display: flex;
+                align-items: center;
+                gap: 20px;
+            }}
+            .icon {{
+                width: 60px;
+                height: 60px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
                 color: white;
-                padding: 20px;
             }}
-            .container {{ max-width: 1200px; margin: 0 auto; }}
-            .header {{ text-align: center; margin-bottom: 40px; }}
-            .header h1 {{ font-size: 3.5rem; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }}
-            .status-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 40px; }}
-            .status-card {{ 
-                background: rgba(255,255,255,0.1);
-                backdrop-filter: blur(10px);
-                border-radius: 15px;
-                padding: 25px;
-                border: 1px solid rgba(255,255,255,0.2);
-                transition: transform 0.3s ease;
+            .title {{
+                font-size: 36px;
+                font-weight: 600;
+                color: #1f2937;
             }}
-            .status-card:hover {{ transform: translateY(-5px); }}
-            .status-card h3 {{ color: #ffeb3b; margin-bottom: 15px; font-size: 1.3rem; }}
-            .status-value {{ font-size: 2rem; font-weight: bold; margin: 10px 0; }}
-            .endpoints-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }}
-            .endpoint-card {{ 
-                background: rgba(255,255,255,0.1);
-                backdrop-filter: blur(10px);
-                border-radius: 15px;
-                padding: 25px;
-                border: 1px solid rgba(255,255,255,0.2);
-                transition: all 0.3s ease;
-                cursor: pointer;
+            .status-section {{
+                padding: 30px 40px;
+                background: #dcfce7;
+                border-left: 4px solid #22c55e;
+                margin: 0;
             }}
-            .endpoint-card:hover {{ 
-                transform: translateY(-5px);
-                background: rgba(255,255,255,0.2);
+            .status-title {{
+                font-size: 22px;
+                font-weight: 600;
+                color: #1f2937;
+                margin-bottom: 5px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
             }}
-            .endpoint-card h4 {{ color: #4caf50; margin-bottom: 10px; font-size: 1.2rem; }}
-            .method {{ 
-                background: #2196f3;
-                color: white;
-                padding: 4px 12px;
-                border-radius: 20px;
-                font-size: 0.8rem;
+            .status-subtitle {{
+                color: #6b7280;
+                font-size: 16px;
+            }}
+            .stats-section {{
+                padding: 30px 40px;
+                background: #f9fafb;
+            }}
+            .stats-title {{
+                font-size: 20px;
+                font-weight: 600;
+                color: #1f2937;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }}
+            .stat-row {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 0;
+                border-bottom: 1px solid #e5e7eb;
+            }}
+            .stat-row:last-child {{ border-bottom: none; }}
+            .stat-label {{ color: #1f2937; font-weight: 500; }}
+            .stat-value {{ 
+                color: #1f2937; 
+                font-weight: 600; 
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }}
+            .connected {{ color: #22c55e; }}
+            .endpoints-section {{
+                padding: 30px 40px;
+            }}
+            .endpoints-title {{
+                font-size: 20px;
+                font-weight: 600;
+                color: #1f2937;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }}
+            .endpoint {{
+                display: flex;
+                align-items: flex-start;
+                gap: 15px;
+                padding: 15px 0;
+                border-bottom: 1px solid #e5e7eb;
+                border-left: 4px solid #e5e7eb;
+                padding-left: 20px;
                 margin-bottom: 10px;
-                display: inline-block;
             }}
-            .description {{ color: #e0e0e0; line-height: 1.5; }}
-            .form-container {{ 
-                background: rgba(255,255,255,0.1);
-                backdrop-filter: blur(10px);
-                border-radius: 15px;
-                padding: 25px;
-                margin-top: 20px;
-                display: none;
+            .endpoint:last-child {{ border-bottom: none; margin-bottom: 0; }}
+            .method {{
+                padding: 4px 12px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 600;
+                text-transform: uppercase;
+                min-width: 50px;
+                text-align: center;
             }}
-            .form-group {{ margin-bottom: 20px; }}
-            .form-group label {{ display: block; margin-bottom: 5px; color: #ffeb3b; }}
-            .form-group input, .form-group textarea, .form-group select {{ 
-                width: 100%;
-                padding: 12px;
-                border: 1px solid rgba(255,255,255,0.3);
-                border-radius: 8px;
-                background: rgba(255,255,255,0.1);
-                color: white;
-                font-size: 16px;
+            .method.get {{ background: #dbeafe; color: #1d4ed8; }}
+            .method.post {{ background: #dcfce7; color: #16a34a; }}
+            .endpoint-content {{
+                flex: 1;
             }}
-            .form-group input::placeholder, .form-group textarea::placeholder {{ color: #ccc; }}
-            .btn {{ 
-                background: linear-gradient(45deg, #4caf50, #45a049);
-                color: white;
-                padding: 12px 30px;
-                border: none;
-                border-radius: 25px;
-                cursor: pointer;
-                font-size: 16px;
-                transition: all 0.3s ease;
+            .endpoint-path {{
+                font-family: 'Monaco', 'Consolas', monospace;
+                font-weight: 600;
+                color: #1f2937;
+                margin-bottom: 5px;
             }}
-            .btn:hover {{ transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }}
-            .result {{ 
-                background: rgba(0,0,0,0.3);
-                border-radius: 10px;
-                padding: 20px;
-                margin-top: 20px;
-                font-family: 'Courier New', monospace;
-                white-space: pre-wrap;
-                display: none;
+            .endpoint-description {{
+                color: #6b7280;
+                font-size: 14px;
+                line-height: 1.5;
+            }}
+            .footer {{
+                padding: 20px 40px;
+                background: #f9fafb;
+                text-align: center;
+                color: #6b7280;
+                font-size: 14px;
+                border-top: 1px solid #e5e7eb;
             }}
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <h1>🤖 KM LLM Service</h1>
-                <p>External AI Integration • Powered by Cloud AI</p>
+                <div class="icon">🤖</div>
+                <div class="title">KM-MCP-LLM Server</div>
             </div>
 
-            <div class="status-grid">
-                <div class="status-card">
-                    <h3>🚀 AI Status</h3>
-                    <div class="status-value">{ai_status}</div>
-                    <p>Cloud AI Integration</p>
+            <div class="status-section">
+                <div class="status-title">
+                    ✅ Service is Running
                 </div>
-                <div class="status-card">
-                    <h3>📊 Service</h3>
-                    <div class="status-value">🟢 Running</div>
-                    <p>API Available</p>
-                </div>
-                <div class="status-card">
-                    <h3>⚡ Performance</h3>
-                    <div class="status-value">🚀 Fast</div>
-                    <p>Cloud-powered responses</p>
+                <div class="status-subtitle">
+                    External AI Integration Service
                 </div>
             </div>
 
-            <div class="endpoints-grid">
-                <div class="endpoint-card" onclick="showForm('analyze')">
-                    <h4>🔍 Document Analysis</h4>
-                    <span class="method">POST</span>
-                    <p class="description">Analyze documents with cloud AI - faster and more accurate than local models.</p>
+            <div class="stats-section">
+                <div class="stats-title">
+                    📊 System Statistics
+                </div>
+                <div class="stat-row">
+                    <div class="stat-label">AI Provider:</div>
+                    <div class="stat-value">{ai_provider}</div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-label">AI Status:</div>
+                    <div class="stat-value">
+                        {"✅" if ai_status == "Connected" else "❌"} 
+                        <span class="{'connected' if ai_status == 'Connected' else ''}">{ai_status}</span>
+                    </div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-label">Service Status:</div>
+                    <div class="stat-value">✅ <span class="connected">Running</span></div>
+                </div>
+            </div>
+
+            <div class="endpoints-section">
+                <div class="endpoints-title">
+                    🔗 Available API Endpoints:
+                </div>
+                
+                <div class="endpoint">
+                    <div class="method get">GET</div>
+                    <div class="endpoint-content">
+                        <div class="endpoint-path">/health</div>
+                        <div class="endpoint-description">Health check and AI provider status</div>
+                    </div>
                 </div>
 
-                <div class="endpoint-card" onclick="showForm('qa')">
-                    <h4>❓ Q&A System</h4>
-                    <span class="method">POST</span>
-                    <p class="description">Ask questions about your documents using advanced cloud AI models.</p>
+                <div class="endpoint">
+                    <div class="method post">POST</div>
+                    <div class="endpoint-content">
+                        <div class="endpoint-path">/analyze</div>
+                        <div class="endpoint-description">Analyze documents with cloud AI - comprehensive analysis, themes, entities, sentiment</div>
+                    </div>
                 </div>
 
-                <div class="endpoint-card" onclick="showForm('summarize')">
-                    <h4>📝 Smart Summarization</h4>
-                    <span class="method">POST</span>
-                    <p class="description">Generate intelligent summaries using GPT-4 or GPT-3.5 models.</p>
+                <div class="endpoint">
+                    <div class="method post">POST</div>
+                    <div class="endpoint-content">
+                        <div class="endpoint-path">/qa</div>
+                        <div class="endpoint-description">Answer questions about documents using advanced AI models</div>
+                    </div>
                 </div>
 
-                <div class="endpoint-card" onclick="window.open('/health', '_blank')">
-                    <h4>❤️ Health Check</h4>
-                    <span class="method">GET</span>
-                    <p class="description">Check service health and AI provider status.</p>
+                <div class="endpoint">
+                    <div class="method post">POST</div>
+                    <div class="endpoint-content">
+                        <div class="endpoint-path">/summarize</div>
+                        <div class="endpoint-description">Generate intelligent summaries with multiple style options</div>
+                    </div>
                 </div>
 
-                <div class="endpoint-card" onclick="window.open('/docs', '_blank')">
-                    <h4>📚 API Documentation</h4>
-                    <span class="method">GET</span>
-                    <p class="description">Interactive Swagger documentation for all AI endpoints.</p>
+                <div class="endpoint">
+                    <div class="method get">GET</div>
+                    <div class="endpoint-content">
+                        <div class="endpoint-path">/docs</div>
+                        <div class="endpoint-description">Interactive API documentation (Swagger UI)</div>
+                    </div>
                 </div>
+            </div>
 
-                <div class="endpoint-card" onclick="window.open('https://km-mcp-sql-docs.azurewebsites.net', '_blank')">
-                    <h4>📄 Document Service</h4>
-                    <span class="method">External</span>
-                    <p class="description">Access your document collection and search capabilities.</p>
+            <div class="footer">
+                Knowledge Management System v1.0 | Status: Production Ready
+            </div>
+        </div>
+
+        <!-- Interactive Forms Section -->
+        <div class="container" style="margin-top: 20px;">
+            <div style="padding: 30px 40px; background: #f8fafc; border-bottom: 1px solid #e5e7eb;">
+                <div style="font-size: 20px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 10px;">
+                    🧪 Interactive Testing
                 </div>
+                <div style="color: #6b7280; font-size: 14px; margin-top: 5px;">
+                    Test the AI endpoints directly from the browser
+                </div>
+            </div>
+
+            <!-- Form Controls -->
+            <div style="padding: 20px 40px; background: #f8fafc; border-bottom: 1px solid #e5e7eb;">
+                <button onclick="showForm('analyze')" class="form-btn">📊 Document Analysis</button>
+                <button onclick="showForm('qa')" class="form-btn">❓ Q&A System</button>
+                <button onclick="showForm('summarize')" class="form-btn">📝 Summarization</button>
+                <button onclick="hideAllForms()" class="form-btn secondary">✖️ Hide Forms</button>
             </div>
 
             <!-- Analysis Form -->
             <div class="form-container" id="analyze-form">
-                <h3>🔍 Document Analysis</h3>
+                <h3 style="color: #1f2937; margin-bottom: 20px;">📊 Document Analysis</h3>
                 <form onsubmit="submitAnalysis(event)">
                     <div class="form-group">
                         <label>Document Text</label>
@@ -469,14 +572,14 @@ async def root():
                             <option value="sentiment">Sentiment Analysis</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn">Analyze with AI</button>
+                    <button type="submit" class="submit-btn">Analyze with AI</button>
                 </form>
                 <div class="result" id="analyze-result"></div>
             </div>
 
             <!-- Q&A Form -->
             <div class="form-container" id="qa-form">
-                <h3>❓ Q&A System</h3>
+                <h3 style="color: #1f2937; margin-bottom: 20px;">❓ Q&A System</h3>
                 <form onsubmit="submitQA(event)">
                     <div class="form-group">
                         <label>Your Question</label>
@@ -486,14 +589,14 @@ async def root():
                         <label>Context (Optional)</label>
                         <textarea name="context" rows="4" placeholder="Provide context or paste relevant document text..."></textarea>
                     </div>
-                    <button type="submit" class="btn">Get AI Answer</button>
+                    <button type="submit" class="submit-btn">Get AI Answer</button>
                 </form>
                 <div class="result" id="qa-result"></div>
             </div>
 
             <!-- Summarization Form -->
             <div class="form-container" id="summarize-form">
-                <h3>📝 Smart Summarization</h3>
+                <h3 style="color: #1f2937; margin-bottom: 20px;">📝 Smart Summarization</h3>
                 <form onsubmit="submitSummarization(event)">
                     <div class="form-group">
                         <label>Text to Summarize</label>
@@ -508,21 +611,92 @@ async def root():
                             <option value="executive">Executive Summary</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn">Generate Summary</button>
+                    <button type="submit" class="submit-btn">Generate Summary</button>
                 </form>
                 <div class="result" id="summarize-result"></div>
             </div>
-
-            <div style="text-align: center; margin-top: 40px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 15px;">
-                <h3>🎯 AI Configuration</h3>
-                <p>To enable AI features, configure environment variables:</p>
-                <ul style="text-align: left; margin: 20px 0; list-style-position: inside;">
-                    <li>• <strong>Azure OpenAI:</strong> AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_KEY, AZURE_DEPLOYMENT_NAME</li>
-                    <li>• <strong>OpenAI API:</strong> OPENAI_API_KEY</li>
-                </ul>
-                <p>Current Status: <strong>{ai_status}</strong></p>
-            </div>
         </div>
+
+        <style>
+            .form-btn {{
+                background: #667eea;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                margin: 5px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 500;
+                transition: all 0.2s ease;
+            }}
+            .form-btn:hover {{ background: #5a6fd8; }}
+            .form-btn.secondary {{ background: #6b7280; }}
+            .form-btn.secondary:hover {{ background: #4b5563; }}
+            
+            .form-container {{
+                display: none;
+                padding: 30px 40px;
+                background: white;
+                border-top: 1px solid #e5e7eb;
+            }}
+            .form-group {{
+                margin-bottom: 20px;
+            }}
+            .form-group label {{
+                display: block;
+                margin-bottom: 8px;
+                color: #1f2937;
+                font-weight: 500;
+                font-size: 14px;
+            }}
+            .form-group input, .form-group textarea, .form-group select {{
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                background: white;
+                color: #1f2937;
+                font-size: 14px;
+                font-family: inherit;
+            }}
+            .form-group input:focus, .form-group textarea:focus, .form-group select:focus {{
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            }}
+            .form-group input::placeholder, .form-group textarea::placeholder {{
+                color: #9ca3af;
+            }}
+            .submit-btn {{
+                background: #22c55e;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 600;
+                transition: all 0.2s ease;
+            }}
+            .submit-btn:hover {{
+                background: #16a34a;
+                transform: translateY(-1px);
+            }}
+            .result {{
+                background: #f3f4f6;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                padding: 20px;
+                margin-top: 20px;
+                font-family: 'Monaco', 'Consolas', monospace;
+                font-size: 12px;
+                white-space: pre-wrap;
+                display: none;
+                max-height: 400px;
+                overflow-y: auto;
+            }}
+        </style>
 
         <script>
             function showForm(formType) {{
@@ -531,6 +705,12 @@ async def root():
                 }});
                 document.getElementById(formType + '-form').style.display = 'block';
                 document.getElementById(formType + '-form').scrollIntoView({{ behavior: 'smooth' }});
+            }}
+
+            function hideAllForms() {{
+                document.querySelectorAll('.form-container').forEach(form => {{
+                    form.style.display = 'none';
+                }});
             }}
 
             async function submitAnalysis(event) {{
