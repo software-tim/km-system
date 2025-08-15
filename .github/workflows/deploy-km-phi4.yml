@@ -1,0 +1,49 @@
+﻿name: Deploy km-mcp-phi4
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - 'km-mcp-phi4/**'
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: km-mcp-phi4
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies and test
+      working-directory: ./km-mcp-phi4
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        python -c "import fastapi; import torch; print('Dependencies OK')"
+        zip -r ../deploy-phi4.zip . -x "*.git*" -x "__pycache__/*" -x "model_cache/*"
+    
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_KM_PHI4 }}
+        package: ./deploy-phi4.zip
+    
+    - name: Verify deployment
+      run: |
+        echo "Waiting for deployment..."
+        sleep 60
+        response=$(curl -s -o /dev/null -w "%{http_code}" https://km-mcp-phi4.azurewebsites.net/health)
+        if [ $response -eq 200 ]; then
+          echo "✅ Deployment successful"
+        else
+          echo "⚠️ Health check status: $response"
+        fi
