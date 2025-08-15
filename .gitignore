@@ -3,12 +3,13 @@
 *.env.local
 # Python
 *.pyc
-**pycache**/
+__pycache__/
 *.pyo
 *.pyd
 .Python
 env/
 venv/
+.venv/
 # IDE
 .vscode/
 .idea/
@@ -16,9 +17,14 @@ venv/
 *.swo
 # Logs
 *.log
+logs/
 # Azure
 .azure/
 *.PublishSettings
+publish-profile.xml
+local.settings.json
+deploy.zip
+deployment-info.json
 # OS
 .DS_Store
 Thumbs.db
@@ -32,60 +38,11 @@ node_modules/
 *.tmp
 *.bak
 *.zip
-# Python
-**pycache**/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-.venv/
-# Environment
-.env
-.env.local
-*.local
-# Azure
-publish-profile.xml
-*.PublishSettings
-local.settings.json
-deploy.zip
-deployment-info.json
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-# OS
-.DS_Store
-Thumbs.db
-# Logs
-*.log
-logs/
 # Testing
 .pytest_cache/
 .coverage
 htmlcov/
-# Azure publish profiles - NEVER COMMIT
-publish-profile.xml
-*.PublishSettings
-# Python environments
-# Deployment files
-deploy.zip
-# Azure publish profiles - NEVER COMMIT THESE
-publish-profile.xml
-*.PublishSettings
-# Python
-**pycache**/
-*.py[cod]
-.venv/
-venv/
-# Deployment
-deploy.zip
-deployment-info.json
-# IDE
-.vscode/
-.idea/
+# Secrets
 openai-key.txt
 *.key
 *.secret

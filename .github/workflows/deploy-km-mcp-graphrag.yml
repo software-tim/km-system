@@ -1,4 +1,4 @@
-name: Deploy km-mcp-graphrag to Azure
+﻿name: Deploy km-mcp-graphrag to Azure
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - master
     paths:
       - 'km-mcp-graphrag/**'
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
   deploy:
