@@ -3,7 +3,7 @@
 KM-MCP-SQL-DOCS Service - WITH INTERACTIVE HTML UI
 """
 
-from fastapi import FastAPI, HTTPException, File, UploadFile, Form
+from fastapi import FastAPI, HTTPException, File, UploadFile, Form, Request
 from fastapi.responses import JSONResponse, StreamingResponse, HTMLResponse
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
@@ -487,7 +487,8 @@ async def list_tools():
             {"name": "get-document", "description": "Get a specific document by ID"},
             {"name": "update-document", "description": "Update an existing document"},
             {"name": "delete-document", "description": "Delete a document (soft delete)"},
-            {"name": "database-stats", "description": "Get database statistics"}
+            {"name": "database-stats", "description": "Get database statistics"},
+            {"name": "get-documents-for-search", "description": "Get documents for search indexing"}
         ]
     }
 
@@ -578,69 +579,61 @@ async def get_database_stats():
             "error": str(e)
         }
 
-# Add this to your km-mcp-sql-docs app.py file
-
 @app.post("/tools/get-documents-for-search")
 async def get_documents_for_search(request: Request):
     """Get all documents for search indexing"""
     try:
         data = await request.json()
-        limit = data.get("limit", 100)  # Default limit
-        offset = data.get("offset", 0)   # For pagination
+        limit = data.get("limit", 100)
+        offset = data.get("offset", 0)
         
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            
-            # Get documents with content
-            cursor.execute("""
-                SELECT 
-                    id,
-                    title,
-                    content,
-                    file_path,
-                    file_type,
-                    created_at,
-                    updated_at
-                FROM documents 
-                WHERE is_active = 1 
-                ORDER BY updated_at DESC
-                OFFSET ? ROWS 
-                FETCH NEXT ? ROWS ONLY
-            """, (offset, limit))
-            
-            documents = []
-            for row in cursor.fetchall():
-                doc = {
-                    "id": row[0],
-                    "title": row[1],
-                    "content": row[2] or "",  # Handle null content
-                    "file_path": row[3],
-                    "file_type": row[4],
-                    "created_at": row[5].isoformat() if row[5] else None,
-                    "updated_at": row[6].isoformat() if row[6] else None,
-                    "metadata": {
-                        "source": "km-mcp-sql-docs",
-                        "type": "document",
-                        "file_type": row[4]
-                    }
+        # Use the existing doc_ops to get documents
+        search_request = SearchRequest(
+            query=None,  # Get all documents
+            classification=None,
+            limit=limit,
+            offset=offset
+        )
+        
+        result = await doc_ops.search_documents(
+            query=search_request.query,
+            classification=search_request.classification,
+            limit=search_request.limit,
+            offset=search_request.offset
+        )
+        
+        # Format for search service
+        documents = []
+        for doc in result.get("documents", []):
+            formatted_doc = {
+                "id": doc.get("id"),
+                "title": doc.get("title", ""),
+                "content": doc.get("content", ""),
+                "file_path": doc.get("file_path"),
+                "file_type": doc.get("file_type"),
+                "created_at": doc.get("created_at"),
+                "updated_at": doc.get("updated_at"),
+                "metadata": {
+                    "source": "km-mcp-sql-docs",
+                    "type": "document",
+                    "file_type": doc.get("file_type"),
+                    "classification": doc.get("classification")
                 }
-                documents.append(doc)
-            
-            # Get total count
-            cursor.execute("SELECT COUNT(*) FROM documents WHERE is_active = 1")
-            total_count = cursor.fetchone()[0]
-            
-            return JSONResponse(content={
-                "success": True,
-                "documents": documents,
-                "total_count": total_count,
-                "returned_count": len(documents),
-                "offset": offset,
-                "limit": limit,
-                "has_more": (offset + len(documents)) < total_count
-            })
-            
+            }
+            documents.append(formatted_doc)
+        
+        return JSONResponse(content={
+            "success": True,
+            "documents": documents,
+            "total_count": result.get("total", 0),
+            "returned_count": len(documents),
+            "offset": offset,
+            "limit": limit,
+            "has_more": (offset + len(documents)) < result.get("total", 0)
+        })
+        
     except Exception as e:
+        logger.error(f"Error in get_documents_for_search: {e}")
         return JSONResponse(
             status_code=500,
             content={
@@ -648,6 +641,7 @@ async def get_documents_for_search(request: Request):
                 "success": False
             }
         )
+
 if __name__ == "__main__":
     import uvicorn
     import os
