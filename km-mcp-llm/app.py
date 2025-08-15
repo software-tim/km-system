@@ -13,7 +13,6 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-import requests
 import aiohttp
 
 # Initialize FastAPI app
@@ -83,7 +82,7 @@ class ExternalAIService:
                 
                 async with aiohttp.ClientSession() as session:
                     url = f"{ai_config.azure_openai_endpoint}/openai/deployments/{ai_config.azure_deployment_name}/chat/completions?api-version=2024-02-15-preview"
-                    async with session.post(url, headers=headers, json=payload) as response:
+                    async with session.post(url, headers=headers, json=payload, timeout=30) as response:
                         if response.status == 200:
                             result = await response.json()
                             return {
@@ -108,7 +107,7 @@ class ExternalAIService:
                 }
                 
                 async with aiohttp.ClientSession() as session:
-                    async with session.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload) as response:
+                    async with session.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=30) as response:
                         if response.status == 200:
                             result = await response.json()
                             return {
@@ -160,7 +159,7 @@ Answer:"""
                 
                 async with aiohttp.ClientSession() as session:
                     url = f"{ai_config.azure_openai_endpoint}/openai/deployments/{ai_config.azure_deployment_name}/chat/completions?api-version=2024-02-15-preview"
-                    async with session.post(url, headers=headers, json=payload) as response:
+                    async with session.post(url, headers=headers, json=payload, timeout=30) as response:
                         if response.status == 200:
                             result = await response.json()
                             return {
@@ -183,7 +182,7 @@ Answer:"""
                 }
                 
                 async with aiohttp.ClientSession() as session:
-                    async with session.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload) as response:
+                    async with session.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=30) as response:
                         if response.status == 200:
                             result = await response.json()
                             return {
@@ -231,7 +230,7 @@ Answer:"""
                 
                 async with aiohttp.ClientSession() as session:
                     url = f"{ai_config.azure_openai_endpoint}/openai/deployments/{ai_config.azure_deployment_name}/chat/completions?api-version=2024-02-15-preview"
-                    async with session.post(url, headers=headers, json=payload) as response:
+                    async with session.post(url, headers=headers, json=payload, timeout=30) as response:
                         if response.status == 200:
                             result = await response.json()
                             return {
@@ -255,7 +254,7 @@ Answer:"""
                 }
                 
                 async with aiohttp.ClientSession() as session:
-                    async with session.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload) as response:
+                    async with session.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=30) as response:
                         if response.status == 200:
                             result = await response.json()
                             return {
@@ -404,9 +403,9 @@ async def root():
                     <p>Cloud AI Integration</p>
                 </div>
                 <div class="status-card">
-                    <h3>📊 Document Database</h3>
-                    <div class="status-value" id="doc-count">17+</div>
-                    <p>Documents Available</p>
+                    <h3>📊 Service</h3>
+                    <div class="status-value">🟢 Running</div>
+                    <p>API Available</p>
                 </div>
                 <div class="status-card">
                     <h3>⚡ Performance</h3>
@@ -624,60 +623,80 @@ async def health_check():
             "docs": "/docs"
         },
         "integration": {
-            "km_sql_docs": "https://km-mcp-sql-docs.azurewebsites.net"
+            "km_sql_docs": "https://km-mcp-sql-docs.azurewebsites.net",
+            "km_sql_docs_status": "unchecked"
         }
     }
     
-    # Try to check if km-mcp-sql-docs is accessible
+    # Try to check if km-mcp-sql-docs is accessible (async version)
     try:
-        response = requests.get("https://km-mcp-sql-docs.azurewebsites.net/health", timeout=5)
-        if response.status_code == 200:
-            health_status["integration"]["km_sql_docs_status"] = "connected"
-        else:
-            health_status["integration"]["km_sql_docs_status"] = "limited"
-    except:
-        health_status["integration"]["km_sql_docs_status"] = "checking"
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://km-mcp-sql-docs.azurewebsites.net/health", timeout=5) as response:
+                if response.status == 200:
+                    health_status["integration"]["km_sql_docs_status"] = "connected"
+                else:
+                    health_status["integration"]["km_sql_docs_status"] = "limited"
+    except Exception:
+        health_status["integration"]["km_sql_docs_status"] = "unreachable"
     
     return JSONResponse(content=health_status)
 
 @app.post("/analyze")
 async def analyze_document(request: Request):
     """Analyze document content using external AI"""
-    data = await request.json()
-    content = data.get("content", "")
-    analysis_type = data.get("analysis_type", "comprehensive")
-    
-    if not content:
-        raise HTTPException(status_code=400, detail="No content provided")
-    
-    result = await ai_service.analyze_text(content, analysis_type)
-    return JSONResponse(content=result)
+    try:
+        data = await request.json()
+        content = data.get("content", "")
+        analysis_type = data.get("analysis_type", "comprehensive")
+        
+        if not content:
+            raise HTTPException(status_code=400, detail="No content provided")
+        
+        result = await ai_service.analyze_text(content, analysis_type)
+        return JSONResponse(content=result)
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Analysis failed: {str(e)}", "success": False}
+        )
 
 @app.post("/qa")
 async def question_answer(request: Request):
     """Answer questions using external AI"""
-    data = await request.json()
-    question = data.get("question", "")
-    context = data.get("context", "")
-    
-    if not question:
-        raise HTTPException(status_code=400, detail="No question provided")
-    
-    result = await ai_service.answer_question(question, context)
-    return JSONResponse(content=result)
+    try:
+        data = await request.json()
+        question = data.get("question", "")
+        context = data.get("context", "")
+        
+        if not question:
+            raise HTTPException(status_code=400, detail="No question provided")
+        
+        result = await ai_service.answer_question(question, context)
+        return JSONResponse(content=result)
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Q&A failed: {str(e)}", "success": False}
+        )
 
 @app.post("/summarize")
 async def summarize_content(request: Request):
     """Generate summaries using external AI"""
-    data = await request.json()
-    content = data.get("content", "")
-    style = data.get("style", "concise")
-    
-    if not content:
-        raise HTTPException(status_code=400, detail="No content provided")
-    
-    result = await ai_service.summarize_text(content, style)
-    return JSONResponse(content=result)
+    try:
+        data = await request.json()
+        content = data.get("content", "")
+        style = data.get("style", "concise")
+        
+        if not content:
+            raise HTTPException(status_code=400, detail="No content provided")
+        
+        result = await ai_service.summarize_text(content, style)
+        return JSONResponse(content=result)
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Summarization failed: {str(e)}", "success": False}
+        )
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
