@@ -1,6 +1,6 @@
 ﻿#!/usr/bin/env python3
 """
-KM-MCP-SQL-DOCS Service - WITH HTML UI
+KM-MCP-SQL-DOCS Service - WITH INTERACTIVE HTML UI
 """
 
 from fastapi import FastAPI, HTTPException, File, UploadFile, Form
@@ -43,7 +43,7 @@ async def startup_event():
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    """Serve beautiful HTML UI"""
+    """Serve beautiful interactive HTML UI"""
     return """
 <!DOCTYPE html>
 <html lang="en">
@@ -67,7 +67,7 @@ async def root():
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             padding: 40px;
-            max-width: 800px;
+            max-width: 1000px;
             width: 100%;
         }
         .header {
@@ -111,6 +111,8 @@ async def root():
             border-bottom: 1px solid #e0e0e0;
         }
         .stat-value { color: #333; font-weight: bold; font-size: 18px; }
+        
+        /* Interactive endpoint styling */
         .endpoint {
             background: #f8f9fa;
             padding: 15px;
@@ -118,6 +120,15 @@ async def root():
             border-radius: 8px;
             border-left: 4px solid #667eea;
             font-family: 'Courier New', monospace;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .endpoint:hover {
+            background: #e9ecef;
+            border-left-color: #4c63d2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         .method {
             display: inline-block;
@@ -130,6 +141,87 @@ async def root():
         }
         .method.get { background: #61affe; }
         .method.post { background: #49cc90; }
+        
+        /* Result display area */
+        .result-area {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+        .result-area.show { display: block; }
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .result-content {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+        .close-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        /* Form styles for POST endpoints */
+        .form-area {
+            margin-top: 15px;
+            padding: 15px;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            display: none;
+        }
+        .form-area.show { display: block; }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
     </style>
 </head>
 <body>
@@ -165,29 +257,74 @@ async def root():
 
         <h2>🔧 Available API Endpoints:</h2>
         
-        <div class="endpoint">
+        <div class="endpoint" onclick="callEndpoint('GET', '/health')">
             <span class="method get">GET</span>
             <span>/health</span> - Health check and database connection status
         </div>
         
-        <div class="endpoint">
+        <div class="endpoint" onclick="showForm('store-document')">
             <span class="method post">POST</span>
             <span>/tools/store-document</span> - Store a new document with metadata
+            <div class="form-area" id="form-store-document">
+                <div class="form-group">
+                    <label>Title:</label>
+                    <input type="text" id="store-title" placeholder="Document title" required>
+                </div>
+                <div class="form-group">
+                    <label>Content:</label>
+                    <textarea id="store-content" placeholder="Document content" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Classification:</label>
+                    <input type="text" id="store-classification" placeholder="e.g., documentation, notes">
+                </div>
+                <div class="form-group">
+                    <label>Entities (comma-separated):</label>
+                    <input type="text" id="store-entities" placeholder="e.g., tag1, tag2, tag3">
+                </div>
+                <button class="btn" onclick="submitStoreDocument()">Store Document</button>
+                <button class="btn" style="background: #6c757d;" onclick="hideForm('store-document')">Cancel</button>
+            </div>
         </div>
         
-        <div class="endpoint">
+        <div class="endpoint" onclick="showForm('search-documents')">
             <span class="method post">POST</span>
             <span>/tools/search-documents</span> - Search documents with filters
+            <div class="form-area" id="form-search-documents">
+                <div class="form-group">
+                    <label>Search Query:</label>
+                    <input type="text" id="search-query" placeholder="Search terms (optional)">
+                </div>
+                <div class="form-group">
+                    <label>Classification Filter:</label>
+                    <input type="text" id="search-classification" placeholder="Filter by classification (optional)">
+                </div>
+                <div class="form-group">
+                    <label>Limit:</label>
+                    <input type="number" id="search-limit" value="10" min="1" max="100">
+                </div>
+                <button class="btn" onclick="submitSearchDocuments()">Search Documents</button>
+                <button class="btn" style="background: #6c757d;" onclick="hideForm('search-documents')">Cancel</button>
+            </div>
         </div>
         
-        <div class="endpoint">
+        <div class="endpoint" onclick="callEndpoint('GET', '/tools/database-stats')">
             <span class="method get">GET</span>
             <span>/tools/database-stats</span> - Get database statistics
         </div>
         
-        <div class="endpoint">
+        <div class="endpoint" onclick="window.open('/docs', '_blank')">
             <span class="method get">GET</span>
             <span>/docs</span> - Interactive API documentation (Swagger UI)
+        </div>
+
+        <!-- Result display area -->
+        <div class="result-area" id="result-area">
+            <div class="result-header">
+                <h3 id="result-title">Result</h3>
+                <button class="close-btn" onclick="hideResult()">Close</button>
+            </div>
+            <div class="result-content" id="result-content"></div>
         </div>
 
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; color: #999; font-size: 14px;">
@@ -199,7 +336,6 @@ async def root():
         // Load stats when page loads
         async function loadStats() {
             try {
-                // Try to get document count from search
                 const searchRes = await fetch('/tools/search-documents', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -211,20 +347,125 @@ async def root():
                 document.getElementById('total-docs').textContent = total;
                 document.getElementById('active-docs').textContent = total;
             } catch (error) {
-                // Fallback values
                 document.getElementById('total-docs').textContent = '17';
                 document.getElementById('active-docs').textContent = '17';
             }
         }
         
+        // Call API endpoint and show results
+        async function callEndpoint(method, path) {
+            showResult(`${method} ${path}`, 'Loading...');
+            
+            try {
+                const response = await fetch(path, { method: method });
+                const data = await response.json();
+                showResult(`${method} ${path}`, JSON.stringify(data, null, 2));
+            } catch (error) {
+                showResult(`${method} ${path}`, `Error: ${error.message}`);
+            }
+        }
+        
+        // Show form for POST endpoints
+        function showForm(formType) {
+            // Hide all forms first
+            const forms = document.querySelectorAll('.form-area');
+            forms.forEach(form => form.classList.remove('show'));
+            
+            // Show the requested form
+            const form = document.getElementById(`form-${formType}`);
+            if (form) {
+                form.classList.add('show');
+            }
+        }
+        
+        // Hide form
+        function hideForm(formType) {
+            const form = document.getElementById(`form-${formType}`);
+            if (form) {
+                form.classList.remove('show');
+            }
+        }
+        
+        // Submit store document form
+        async function submitStoreDocument() {
+            const formData = new FormData();
+            formData.append('title', document.getElementById('store-title').value);
+            formData.append('content', document.getElementById('store-content').value);
+            formData.append('classification', document.getElementById('store-classification').value);
+            formData.append('entities', document.getElementById('store-entities').value);
+            formData.append('metadata', '{}');
+            
+            showResult('POST /tools/store-document', 'Storing document...');
+            
+            try {
+                const response = await fetch('/tools/store-document', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                showResult('POST /tools/store-document', JSON.stringify(data, null, 2));
+                
+                if (data.success) {
+                    // Clear form and reload stats
+                    document.getElementById('store-title').value = '';
+                    document.getElementById('store-content').value = '';
+                    document.getElementById('store-classification').value = '';
+                    document.getElementById('store-entities').value = '';
+                    hideForm('store-document');
+                    loadStats();
+                }
+            } catch (error) {
+                showResult('POST /tools/store-document', `Error: ${error.message}`);
+            }
+        }
+        
+        // Submit search documents form
+        async function submitSearchDocuments() {
+            const searchData = {
+                query: document.getElementById('search-query').value || null,
+                classification: document.getElementById('search-classification').value || null,
+                limit: parseInt(document.getElementById('search-limit').value),
+                offset: 0
+            };
+            
+            showResult('POST /tools/search-documents', 'Searching...');
+            
+            try {
+                const response = await fetch('/tools/search-documents', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(searchData)
+                });
+                const data = await response.json();
+                showResult('POST /tools/search-documents', JSON.stringify(data, null, 2));
+                hideForm('search-documents');
+            } catch (error) {
+                showResult('POST /tools/search-documents', `Error: ${error.message}`);
+            }
+        }
+        
+        // Show result in the result area
+        function showResult(title, content) {
+            document.getElementById('result-title').textContent = title;
+            document.getElementById('result-content').textContent = content;
+            document.getElementById('result-area').classList.add('show');
+            document.getElementById('result-area').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Hide result area
+        function hideResult() {
+            document.getElementById('result-area').classList.remove('show');
+        }
+        
+        // Load stats on page load
         loadStats();
-        setInterval(loadStats, 30000); // Refresh every 30 seconds
+        setInterval(loadStats, 30000);
     </script>
 </body>
 </html>
     """
 
-# All the other endpoints remain the same...
+# All the other endpoints remain exactly the same...
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
@@ -339,5 +580,6 @@ async def get_database_stats():
 
 if __name__ == "__main__":
     import uvicorn
+    import os
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
