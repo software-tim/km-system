@@ -116,3 +116,7 @@ km-system/
 openai-key.txt
 *.key
 *.secret
+
+openai-key.txt
+*.key
+*.secret
