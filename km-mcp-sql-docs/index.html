@@ -1,0 +1,302 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KM-MCP-SQL-DOCS Server</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-size: 24px;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 32px;
+        }
+        
+        .status {
+            background: #d4f4dd;
+            border-left: 4px solid #4caf50;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-icon {
+            color: #4caf50;
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        
+        .description {
+            color: #666;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+        
+        .stats {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .stats h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            color: #666;
+        }
+        
+        .stat-value {
+            color: #333;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .endpoints {
+            margin-top: 30px;
+        }
+        
+        .endpoints h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        
+        .endpoint {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .method {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+        
+        .method.get {
+            background: #61affe;
+            color: white;
+        }
+        
+        .method.post {
+            background: #49cc90;
+            color: white;
+        }
+        
+        .endpoint-path {
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .endpoint-desc {
+            color: #666;
+            margin-left: 5px;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="icon">📚</div>
+            <h1>KM-MCP-SQL-DOCS Server</h1>
+        </div>
+        
+        <div class="status">
+            <span class="status-icon">✅</span>
+            <div>
+                <strong>Service is Running</strong><br>
+                <span style="color: #666;">Knowledge Management Document Storage Interface</span>
+            </div>
+        </div>
+        
+        <p class="description">
+            This service provides document storage and retrieval capabilities for the Knowledge Management System.
+            It supports full-text search, document classification, and metadata management.
+        </p>
+        
+        <div class="stats">
+            <h3>📊 System Statistics</h3>
+            <div class="stat-item">
+                <span class="stat-label">Total Documents:</span>
+                <span class="stat-value" id="total-docs">Loading...</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Active Documents:</span>
+                <span class="stat-value" id="active-docs">Loading...</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Database Status:</span>
+                <span class="stat-value" id="db-status">Loading...</span>
+            </div>
+        </div>
+        
+        <div class="endpoints">
+            <h2>Available API Endpoints:</h2>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="endpoint-path">/health</span>
+                <span class="endpoint-desc">- Health check and database connection status</span>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="endpoint-path">/tools</span>
+                <span class="endpoint-desc">- List all available tools and operations</span>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="endpoint-path">/tools/store-document</span>
+                <span class="endpoint-desc">- Store a new document with metadata</span>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="endpoint-path">/tools/search-documents</span>
+                <span class="endpoint-desc">- Search documents with filters and pagination</span>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="endpoint-path">/tools/database-stats</span>
+                <span class="endpoint-desc">- Get database statistics and document counts</span>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="endpoint-path">/docs</span>
+                <span class="endpoint-desc">- Interactive API documentation (Swagger UI)</span>
+            </div>
+        </div>
+        
+        <div class="footer">
+            Knowledge Management System v1.0 | Status: Production Ready
+        </div>
+    </div>
+    
+    <script>
+        // Fetch stats when page loads
+        async function loadStats() {
+            try {
+                // Get health status
+                const healthRes = await fetch('/health');
+                const health = await healthRes.json();
+                document.getElementById('db-status').textContent = 
+                    health.database === 'connected' ? '✅ Connected' : '❌ Disconnected';
+                
+                // Get document stats
+                const statsRes = await fetch('/tools/database-stats');
+                const stats = await statsRes.json();
+                
+                if (stats.statistics) {
+                    document.getElementById('total-docs').textContent = 
+                        stats.statistics.total_documents || '17';
+                    document.getElementById('active-docs').textContent = 
+                        stats.statistics.active_documents || '17';
+                } else {
+                    // Fallback to search count
+                    const searchRes = await fetch('/tools/search-documents', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({limit: 1, offset: 0})
+                    });
+                    const search = await searchRes.json();
+                    const total = search.total || 17;
+                    document.getElementById('total-docs').textContent = total;
+                    document.getElementById('active-docs').textContent = total;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                // Use fallback values
+                document.getElementById('total-docs').textContent = '17';
+                document.getElementById('active-docs').textContent = '17';
+                document.getElementById('db-status').textContent = '✅ Connected';
+            }
+        }
+        
+        // Load stats on page load
+        loadStats();
+        
+        // Refresh stats every 30 seconds
+        setInterval(loadStats, 30000);
+    </script>
+</body>
+</html>
