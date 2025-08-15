@@ -112,3 +112,7 @@ deployment-info.json
 
 # Accidentally cloned repo
 km-system/
+
+openai-key.txt
+*.key
+*.secret
