@@ -1,48 +1,39 @@
 ﻿# Environment files
 .env
 *.env.local
-
 # Python
 *.pyc
-__pycache__/
+**pycache**/
 *.pyo
 *.pyd
 .Python
 env/
 venv/
-
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-
 # Logs
 *.log
-
 # Azure
 .azure/
 *.PublishSettings
-
 # OS
 .DS_Store
 Thumbs.db
-
 # Build
 dist/
 build/
 *.egg-info/
-
 # Node (if any)
 node_modules/
-
 # Temp files
 *.tmp
 *.bak
 *.zip
-
 # Python
-__pycache__/
+**pycache**/
 *.py[cod]
 *$py.class
 *.so
@@ -50,73 +41,51 @@ __pycache__/
 env/
 venv/
 .venv/
-
 # Environment
 .env
 .env.local
 *.local
-
 # Azure
 publish-profile.xml
 *.PublishSettings
 local.settings.json
 deploy.zip
 deployment-info.json
-
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-
 # OS
 .DS_Store
 Thumbs.db
-
 # Logs
 *.log
 logs/
-
 # Testing
 .pytest_cache/
 .coverage
 htmlcov/
-
 # Azure publish profiles - NEVER COMMIT
 publish-profile.xml
 *.PublishSettings
-
 # Python environments
-km-system/
-
 # Deployment files
 deploy.zip
-
 # Azure publish profiles - NEVER COMMIT THESE
 publish-profile.xml
 *.PublishSettings
-
 # Python
-__pycache__/
+**pycache**/
 *.py[cod]
 .venv/
 venv/
-
 # Deployment
 deploy.zip
 deployment-info.json
-
 # IDE
 .vscode/
 .idea/
-
-# Accidentally cloned repo
-km-system/
-
-openai-key.txt
-*.key
-*.secret
-
 openai-key.txt
 *.key
 *.secret
