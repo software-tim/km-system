@@ -500,6 +500,83 @@ async def root():
                 font-size: 14px;
                 border-top: 1px solid #e5e7eb;
             }}
+            
+            /* Form styles matching km-mcp-sql-docs */
+            .form-area {{
+                margin-top: 15px;
+                padding: 15px;
+                background: #fff;
+                border: 1px solid #dee2e6;
+                border-radius: 5px;
+                display: none;
+            }}
+            .form-area.show {{ display: block; }}
+            .form-group {{
+                margin-bottom: 15px;
+            }}
+            .form-group label {{
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+                color: #333;
+            }}
+            .form-group input, .form-group textarea, .form-group select {{
+                width: 100%;
+                padding: 8px 12px;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                font-size: 14px;
+            }}
+            .form-group textarea {{
+                min-height: 100px;
+                resize: vertical;
+            }}
+            .btn {{
+                background: #007bff;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+                margin-right: 10px;
+            }}
+            .btn:hover {{
+                background: #0056b3;
+            }}
+            
+            /* Result display area */
+            .result-area {{
+                margin-top: 30px;
+                padding: 20px;
+                background: #f8f9fa;
+                border-radius: 10px;
+                display: none;
+            }}
+            .result-area.show {{ display: block; }}
+            .result-header {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+            }}
+            .result-content {{
+                background: #2d3748;
+                color: #e2e8f0;
+                padding: 15px;
+                border-radius: 5px;
+                font-family: 'Courier New', monospace;
+                font-size: 14px;
+                overflow-x: auto;
+                white-space: pre-wrap;
+            }}
+            .close-btn {{
+                background: #dc3545;
+                color: white;
+                border: none;
+                padding: 5px 10px;
+                border-radius: 5px;
+                cursor: pointer;
+            }}
         </style>
     </head>
     <body>
@@ -548,7 +625,7 @@ async def root():
                     🔗 Available API Endpoints:
                 </div>
                 
-                <div class="endpoint">
+                <div class="endpoint" onclick="callEndpoint('GET', '/health')">
                     <div class="method get">GET</div>
                     <div class="endpoint-content">
                         <div class="endpoint-path">
@@ -558,31 +635,71 @@ async def root():
                     </div>
                 </div>
 
-                <div class="endpoint">
+                <div class="endpoint" onclick="showForm('search')">
                     <div class="method post">POST</div>
                     <div class="endpoint-content">
                         <div class="endpoint-path">/search</div>
                         <div class="endpoint-description">Search documents with keyword, semantic, or hybrid search</div>
+                        <div class="form-area" id="form-search">
+                            <div class="form-group">
+                                <label>Search Query:</label>
+                                <input type="text" id="main-search-query" placeholder="Enter your search query..." required>
+                            </div>
+                            <div class="form-group">
+                                <label>Search Type:</label>
+                                <select id="main-search-type">
+                                    <option value="hybrid">Hybrid (Semantic + Keyword)</option>
+                                    <option value="semantic">Semantic Search</option>
+                                    <option value="keyword">Keyword Search</option>
+                                </select>
+                            </div>
+                            <button class="btn" onclick="submitMainSearch()">🔍 Search</button>
+                            <button class="btn" style="background: #6c757d;" onclick="hideForm('search')">Cancel</button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="endpoint">
+                <div class="endpoint" onclick="showForm('semantic-search')">
                     <div class="method post">POST</div>
                     <div class="endpoint-content">
                         <div class="endpoint-path">/search/semantic</div>
                         <div class="endpoint-description">Semantic search using OpenAI embeddings for meaning-based results</div>
+                        <div class="form-area" id="form-semantic-search">
+                            <div class="form-group">
+                                <label>Search Query:</label>
+                                <input type="text" id="semantic-search-query" placeholder="Enter semantic search query..." required>
+                            </div>
+                            <div class="form-group">
+                                <label>Description:</label>
+                                <p style="color: #666; font-size: 14px; margin: 0;">Semantic search finds documents based on meaning and context, not just exact word matches.</p>
+                            </div>
+                            <button class="btn" onclick="submitSemanticSearch()">🧠 Semantic Search</button>
+                            <button class="btn" style="background: #6c757d;" onclick="hideForm('semantic-search')">Cancel</button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="endpoint">
+                <div class="endpoint" onclick="showForm('keyword-search')">
                     <div class="method post">POST</div>
                     <div class="endpoint-content">
                         <div class="endpoint-path">/search/keyword</div>
                         <div class="endpoint-description">Traditional keyword search with fuzzy matching</div>
+                        <div class="form-area" id="form-keyword-search">
+                            <div class="form-group">
+                                <label>Search Query:</label>
+                                <input type="text" id="keyword-search-query" placeholder="Enter keyword search query..." required>
+                            </div>
+                            <div class="form-group">
+                                <label>Description:</label>
+                                <p style="color: #666; font-size: 14px; margin: 0;">Keyword search finds documents containing exact words or phrases from your query.</p>
+                            </div>
+                            <button class="btn" onclick="submitKeywordSearch()">📝 Keyword Search</button>
+                            <button class="btn" style="background: #6c757d;" onclick="hideForm('keyword-search')">Cancel</button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="endpoint">
+                <div class="endpoint" onclick="callEndpoint('GET', '/docs')">
                     <div class="method get">GET</div>
                     <div class="endpoint-content">
                         <div class="endpoint-path">
@@ -598,53 +715,66 @@ async def root():
             </div>
         </div>
 
-        <!-- Interactive Testing Section -->
-        <div class="container" style="margin-top: 20px;">
-            <div style="padding: 30px 40px; background: #f8fafc; border-bottom: 1px solid #e5e7eb;">
-                <div style="font-size: 20px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 10px;">
-                    🧪 Interactive Search Testing
-                </div>
-                <div style="color: #6b7280; font-size: 14px; margin-top: 5px;">
-                    Test the search endpoints directly from the browser
-                </div>
-            </div>
-
-            <!-- Search Form -->
-            <div style="padding: 30px 40px;">
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; color: #1f2937; font-weight: 500;">Search Query</label>
-                    <input type="text" id="searchQuery" placeholder="Enter your search query..." style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; color: #1f2937; font-weight: 500;">Search Type</label>
-                    <select id="searchType" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
-                        <option value="hybrid">Hybrid (Semantic + Keyword)</option>
-                        <option value="semantic">Semantic Search</option>
-                        <option value="keyword">Keyword Search</option>
-                    </select>
-                </div>
-                
-                <button onclick="performSearch()" style="background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
-                    🔍 Search
-                </button>
-                
-                <div id="searchResults" style="margin-top: 30px; display: none;">
-                    <h3 style="color: #1f2937; margin-bottom: 20px;">Search Results</h3>
-                    <div id="resultsContainer"></div>
-                </div>
+            <div class="footer">
+                Knowledge Management System v1.0 | Status: Production Ready
             </div>
         </div>
 
+        <!-- Result display area -->
+        <div class="result-area" id="result-area">
+            <div class="result-header">
+                <h3 id="result-title">Search Results</h3>
+                <button class="close-btn" onclick="hideResult()">Close</button>
+            </div>
+            <div class="result-content" id="result-content"></div>
+        </div>
+
         <script>
-            async function performSearch() {{
-                const query = document.getElementById('searchQuery').value;
-                const searchType = document.getElementById('searchType').value;
+            // Show form for POST endpoints (matching km-mcp-sql-docs behavior)
+            function showForm(formType) {{
+                // Hide all forms first
+                const forms = document.querySelectorAll('.form-area');
+                forms.forEach(form => form.classList.remove('show'));
+                
+                // Show the requested form
+                const form = document.getElementById(`form-${{formType}}`);
+                if (form) {{
+                    form.classList.add('show');
+                }}
+            }}
+            
+            // Hide form
+            function hideForm(formType) {{
+                const form = document.getElementById(`form-${{formType}}`);
+                if (form) {{
+                    form.classList.remove('show');
+                }}
+            }}
+            
+            // Call GET endpoints directly
+            async function callEndpoint(method, path) {{
+                showResult(`${{method}} ${{path}}`, 'Loading...');
+                
+                try {{
+                    const response = await fetch(path, {{ method: method }});
+                    const data = await response.json();
+                    showResult(`${{method}} ${{path}}`, JSON.stringify(data, null, 2));
+                }} catch (error) {{
+                    showResult(`${{method}} ${{path}}`, `Error: ${{error.message}}`);
+                }}
+            }}
+            
+            // Submit main search form
+            async function submitMainSearch() {{
+                const query = document.getElementById('main-search-query').value;
+                const searchType = document.getElementById('main-search-type').value;
                 
                 if (!query.trim()) {{
                     alert('Please enter a search query');
                     return;
                 }}
+                
+                showResult('POST /search', 'Searching...');
                 
                 try {{
                     const response = await fetch('/search', {{
@@ -654,52 +784,108 @@ async def root():
                     }});
                     
                     const result = await response.json();
-                    displayResults(result);
+                    displaySearchResults(result, 'POST /search');
+                    hideForm('search');
                 }} catch (e) {{
-                    document.getElementById('resultsContainer').innerHTML = 
-                        '<div style="color: #ef4444; padding: 20px; background: #fef2f2; border-radius: 6px;">Error: ' + e.message + '</div>';
-                    document.getElementById('searchResults').style.display = 'block';
+                    showResult('POST /search', `Error: ${{e.message}}`);
                 }}
             }}
             
-            function displayResults(result) {{
-                const container = document.getElementById('resultsContainer');
+            // Submit semantic search form
+            async function submitSemanticSearch() {{
+                const query = document.getElementById('semantic-search-query').value;
                 
-                if (!result.success) {{
-                    container.innerHTML = 
-                        '<div style="color: #ef4444; padding: 20px; background: #fef2f2; border-radius: 6px;">' + 
-                        result.error + '</div>';
-                }} else if (result.total_results === 0) {{
-                    container.innerHTML = 
-                        '<div style="color: #6b7280; padding: 20px; background: #f9fafb; border-radius: 6px;">' + 
-                        'No results found for "' + result.query + '"</div>';
-                }} else {{
-                    let html = '<div style="color: #1f2937; margin-bottom: 20px; font-weight: 500;">' + 
-                              'Found ' + result.total_results + ' results for "' + result.query + '"</div>';
-                    
-                    result.results.forEach(item => {{
-                        html += '<div style="border: 1px solid #e5e7eb; border-radius: 6px; padding: 20px; margin-bottom: 15px; background: white;">' +
-                               '<h4 style="color: #1f2937; margin-bottom: 10px;">' + item.title + '</h4>' +
-                               '<p style="color: #6b7280; margin-bottom: 10px; line-height: 1.5;">' + item.snippet + '</p>' +
-                               '<div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #9ca3af;">' +
-                               '<span>Source: ' + item.source + '</span>' +
-                               '<span>Score: ' + item.score + '</span>' +
-                               '</div>' +
-                               '</div>';
+                if (!query.trim()) {{
+                    alert('Please enter a search query');
+                    return;
+                }}
+                
+                showResult('POST /search/semantic', 'Searching with AI...');
+                
+                try {{
+                    const response = await fetch('/search/semantic', {{
+                        method: 'POST',
+                        headers: {{ 'Content-Type': 'application/json' }},
+                        body: JSON.stringify({{ query }})
                     }});
                     
-                    container.innerHTML = html;
+                    const result = await response.json();
+                    displaySearchResults(result, 'POST /search/semantic');
+                    hideForm('semantic-search');
+                }} catch (e) {{
+                    showResult('POST /search/semantic', `Error: ${{e.message}}`);
                 }}
-                
-                document.getElementById('searchResults').style.display = 'block';
             }}
             
-            // Allow Enter key to search
-            document.getElementById('searchQuery').addEventListener('keypress', function(e) {{
-                if (e.key === 'Enter') {{
-                    performSearch();
+            // Submit keyword search form
+            async function submitKeywordSearch() {{
+                const query = document.getElementById('keyword-search-query').value;
+                
+                if (!query.trim()) {{
+                    alert('Please enter a search query');
+                    return;
                 }}
-            }});
+                
+                showResult('POST /search/keyword', 'Searching keywords...');
+                
+                try {{
+                    const response = await fetch('/search/keyword', {{
+                        method: 'POST',
+                        headers: {{ 'Content-Type': 'application/json' }},
+                        body: JSON.stringify({{ query }})
+                    }});
+                    
+                    const result = await response.json();
+                    displaySearchResults(result, 'POST /search/keyword');
+                    hideForm('keyword-search');
+                }} catch (e) {{
+                    showResult('POST /search/keyword', `Error: ${{e.message}}`);
+                }}
+            }}
+            
+            // Display search results in a user-friendly format
+            function displaySearchResults(result, title) {{
+                if (!result.success) {{
+                    showResult(title, `Error: ${{result.error}}`);
+                    return;
+                }}
+                
+                if (result.total_results === 0) {{
+                    showResult(title, 'No results found for your search query.');
+                    return;
+                }}
+                
+                let formattedResults = `Found ${{result.total_results}} results for "${{result.query}}"\\n`;
+                formattedResults += `Search Type: ${{result.search_type}}\\n`;
+                formattedResults += `Timestamp: ${{result.timestamp}}\\n\\n`;
+                
+                result.results.forEach((item, index) => {{
+                    formattedResults += `--- Result ${{index + 1}} ---\\n`;
+                    formattedResults += `Title: ${{item.title}}\\n`;
+                    formattedResults += `Score: ${{item.score}}\\n`;
+                    formattedResults += `Source: ${{item.source}}\\n`;
+                    formattedResults += `Snippet: ${{item.snippet}}\\n`;
+                    if (item.metadata && item.metadata.file_type) {{
+                        formattedResults += `File Type: ${{item.metadata.file_type}}\\n`;
+                    }}
+                    formattedResults += `\\n`;
+                }});
+                
+                showResult(title, formattedResults);
+            }}
+            
+            // Show result in the result area
+            function showResult(title, content) {{
+                document.getElementById('result-title').textContent = title;
+                document.getElementById('result-content').textContent = content;
+                document.getElementById('result-area').classList.add('show');
+                document.getElementById('result-area').scrollIntoView({{ behavior: 'smooth' }});
+            }}
+            
+            // Hide result area
+            function hideResult() {{
+                document.getElementById('result-area').classList.remove('show');
+            }}
         </script>
     </body>
     </html>

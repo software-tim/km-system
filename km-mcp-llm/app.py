@@ -403,41 +403,33 @@ async def root():
                 gap: 10px;
             }}
             .endpoint {{
-                display: flex;
-                align-items: flex-start;
-                gap: 15px;
-                padding: 15px 0;
-                border-bottom: 1px solid #e5e7eb;
-                border-left: 4px solid #e5e7eb;
-                padding-left: 20px;
-                margin-bottom: 10px;
+                background: #f8f9fa;
+                padding: 15px;
+                margin: 10px 0;
+                border-radius: 8px;
+                border-left: 4px solid #667eea;
+                font-family: 'Courier New', monospace;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                position: relative;
             }}
-            .endpoint:last-child {{ border-bottom: none; margin-bottom: 0; }}
+            .endpoint:hover {{
+                background: #e9ecef;
+                border-left-color: #4c63d2;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }}
             .method {{
-                padding: 4px 12px;
-                border-radius: 6px;
+                display: inline-block;
+                padding: 3px 8px;
+                border-radius: 4px;
+                font-weight: bold;
                 font-size: 12px;
-                font-weight: 600;
-                text-transform: uppercase;
-                min-width: 50px;
-                text-align: center;
+                margin-right: 10px;
+                color: white;
             }}
-            .method.get {{ background: #dbeafe; color: #1d4ed8; }}
-            .method.post {{ background: #dcfce7; color: #16a34a; }}
-            .endpoint-content {{
-                flex: 1;
-            }}
-            .endpoint-path {{
-                font-family: 'Monaco', 'Consolas', monospace;
-                font-weight: 600;
-                color: #1f2937;
-                margin-bottom: 5px;
-            }}
-            .endpoint-description {{
-                color: #6b7280;
-                font-size: 14px;
-                line-height: 1.5;
-            }}
+            .method.get {{ background: #61affe; }}
+            .method.post {{ background: #49cc90; }}
             .footer {{
                 padding: 20px 40px;
                 background: #f9fafb;
@@ -445,6 +437,83 @@ async def root():
                 color: #6b7280;
                 font-size: 14px;
                 border-top: 1px solid #e5e7eb;
+            }}
+            
+            /* Form styles matching other services */
+            .form-area {{
+                margin-top: 15px;
+                padding: 15px;
+                background: #fff;
+                border: 1px solid #dee2e6;
+                border-radius: 5px;
+                display: none;
+            }}
+            .form-area.show {{ display: block; }}
+            .form-group {{
+                margin-bottom: 15px;
+            }}
+            .form-group label {{
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+                color: #333;
+            }}
+            .form-group input, .form-group textarea, .form-group select {{
+                width: 100%;
+                padding: 8px 12px;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                font-size: 14px;
+            }}
+            .form-group textarea {{
+                min-height: 100px;
+                resize: vertical;
+            }}
+            .btn {{
+                background: #007bff;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+                margin-right: 10px;
+            }}
+            .btn:hover {{
+                background: #0056b3;
+            }}
+            
+            /* Result display area */
+            .result-area {{
+                margin-top: 30px;
+                padding: 20px;
+                background: #f8f9fa;
+                border-radius: 10px;
+                display: none;
+            }}
+            .result-area.show {{ display: block; }}
+            .result-header {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+            }}
+            .result-content {{
+                background: #2d3748;
+                color: #e2e8f0;
+                padding: 15px;
+                border-radius: 5px;
+                font-family: 'Courier New', monospace;
+                font-size: 14px;
+                overflow-x: auto;
+                white-space: pre-wrap;
+            }}
+            .close-btn {{
+                background: #dc3545;
+                color: white;
+                border: none;
+                padding: 5px 10px;
+                border-radius: 5px;
+                cursor: pointer;
             }}
         </style>
     </head>
@@ -490,44 +559,75 @@ async def root():
                     🔗 Available API Endpoints:
                 </div>
                 
-                <div class="endpoint">
-                    <div class="method get">GET</div>
-                    <div class="endpoint-content">
-                        <div class="endpoint-path">/health</div>
-                        <div class="endpoint-description">Health check and AI provider status</div>
+                <div class="endpoint" onclick="callEndpoint('GET', '/health')">
+                    <span class="method get">GET</span>
+                    <span>/health</span> - Health check and AI provider status
+                </div>
+
+                <div class="endpoint" onclick="showForm('analyze')">
+                    <span class="method post">POST</span>
+                    <span>/analyze</span> - Analyze documents with cloud AI - comprehensive analysis, themes, entities, sentiment
+                    <div class="form-area" id="form-analyze">
+                        <div class="form-group">
+                            <label>Document Text:</label>
+                            <textarea id="analyze-content" placeholder="Paste document text here for AI analysis..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Analysis Type:</label>
+                            <select id="analyze-type">
+                                <option value="comprehensive">Comprehensive Analysis</option>
+                                <option value="themes">Theme Extraction</option>
+                                <option value="entities">Entity Recognition</option>
+                                <option value="sentiment">Sentiment Analysis</option>
+                            </select>
+                        </div>
+                        <button class="btn" onclick="submitAnalysis()">🔍 Analyze with AI</button>
+                        <button class="btn" style="background: #6c757d;" onclick="hideForm('analyze')">Cancel</button>
                     </div>
                 </div>
 
-                <div class="endpoint">
-                    <div class="method post">POST</div>
-                    <div class="endpoint-content">
-                        <div class="endpoint-path">/analyze</div>
-                        <div class="endpoint-description">Analyze documents with cloud AI - comprehensive analysis, themes, entities, sentiment</div>
+                <div class="endpoint" onclick="showForm('qa')">
+                    <span class="method post">POST</span>
+                    <span>/qa</span> - Answer questions about documents using advanced AI models
+                    <div class="form-area" id="form-qa">
+                        <div class="form-group">
+                            <label>Your Question:</label>
+                            <textarea id="qa-question" rows="3" placeholder="Ask anything about your documents..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Context (Optional):</label>
+                            <textarea id="qa-context" rows="4" placeholder="Provide context or paste relevant document text..."></textarea>
+                        </div>
+                        <button class="btn" onclick="submitQA()">❓ Get AI Answer</button>
+                        <button class="btn" style="background: #6c757d;" onclick="hideForm('qa')">Cancel</button>
                     </div>
                 </div>
 
-                <div class="endpoint">
-                    <div class="method post">POST</div>
-                    <div class="endpoint-content">
-                        <div class="endpoint-path">/qa</div>
-                        <div class="endpoint-description">Answer questions about documents using advanced AI models</div>
+                <div class="endpoint" onclick="showForm('summarize')">
+                    <span class="method post">POST</span>
+                    <span>/summarize</span> - Generate intelligent summaries with multiple style options
+                    <div class="form-area" id="form-summarize">
+                        <div class="form-group">
+                            <label>Text to Summarize:</label>
+                            <textarea id="summarize-content" rows="6" placeholder="Paste text or document content here..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Summary Style:</label>
+                            <select id="summarize-style">
+                                <option value="concise">Concise (2-3 sentences)</option>
+                                <option value="detailed">Detailed (paragraph)</option>
+                                <option value="bullets">Bullet Points</option>
+                                <option value="executive">Executive Summary</option>
+                            </select>
+                        </div>
+                        <button class="btn" onclick="submitSummarization()">📝 Generate Summary</button>
+                        <button class="btn" style="background: #6c757d;" onclick="hideForm('summarize')">Cancel</button>
                     </div>
                 </div>
 
-                <div class="endpoint">
-                    <div class="method post">POST</div>
-                    <div class="endpoint-content">
-                        <div class="endpoint-path">/summarize</div>
-                        <div class="endpoint-description">Generate intelligent summaries with multiple style options</div>
-                    </div>
-                </div>
-
-                <div class="endpoint">
-                    <div class="method get">GET</div>
-                    <div class="endpoint-content">
-                        <div class="endpoint-path">/docs</div>
-                        <div class="endpoint-description">Interactive API documentation (Swagger UI)</div>
-                    </div>
+                <div class="endpoint" onclick="callEndpoint('GET', '/docs')">
+                    <span class="method get">GET</span>
+                    <span>/docs</span> - Interactive API documentation (Swagger UI)
                 </div>
             </div>
 
@@ -536,241 +636,167 @@ async def root():
             </div>
         </div>
 
-        <!-- Interactive Forms Section -->
-        <div class="container" style="margin-top: 20px;">
-            <div style="padding: 30px 40px; background: #f8fafc; border-bottom: 1px solid #e5e7eb;">
-                <div style="font-size: 20px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 10px;">
-                    🧪 Interactive Testing
-                </div>
-                <div style="color: #6b7280; font-size: 14px; margin-top: 5px;">
-                    Test the AI endpoints directly from the browser
-                </div>
+        <!-- Result display area -->
+        <div class="result-area" id="result-area">
+            <div class="result-header">
+                <h3 id="result-title">AI Results</h3>
+                <button class="close-btn" onclick="hideResult()">Close</button>
             </div>
-
-            <!-- Form Controls -->
-            <div style="padding: 20px 40px; background: #f8fafc; border-bottom: 1px solid #e5e7eb;">
-                <button onclick="showForm('analyze')" class="form-btn">📊 Document Analysis</button>
-                <button onclick="showForm('qa')" class="form-btn">❓ Q&A System</button>
-                <button onclick="showForm('summarize')" class="form-btn">📝 Summarization</button>
-                <button onclick="hideAllForms()" class="form-btn secondary">✖️ Hide Forms</button>
-            </div>
-
-            <!-- Analysis Form -->
-            <div class="form-container" id="analyze-form">
-                <h3 style="color: #1f2937; margin-bottom: 20px;">📊 Document Analysis</h3>
-                <form onsubmit="submitAnalysis(event)">
-                    <div class="form-group">
-                        <label>Document Text</label>
-                        <textarea name="content" rows="6" placeholder="Paste document text here for AI analysis..." required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Analysis Type</label>
-                        <select name="analysis_type">
-                            <option value="comprehensive">Comprehensive Analysis</option>
-                            <option value="themes">Theme Extraction</option>
-                            <option value="entities">Entity Recognition</option>
-                            <option value="sentiment">Sentiment Analysis</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="submit-btn">Analyze with AI</button>
-                </form>
-                <div class="result" id="analyze-result"></div>
-            </div>
-
-            <!-- Q&A Form -->
-            <div class="form-container" id="qa-form">
-                <h3 style="color: #1f2937; margin-bottom: 20px;">❓ Q&A System</h3>
-                <form onsubmit="submitQA(event)">
-                    <div class="form-group">
-                        <label>Your Question</label>
-                        <textarea name="question" rows="3" placeholder="Ask anything about your documents..." required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Context (Optional)</label>
-                        <textarea name="context" rows="4" placeholder="Provide context or paste relevant document text..."></textarea>
-                    </div>
-                    <button type="submit" class="submit-btn">Get AI Answer</button>
-                </form>
-                <div class="result" id="qa-result"></div>
-            </div>
-
-            <!-- Summarization Form -->
-            <div class="form-container" id="summarize-form">
-                <h3 style="color: #1f2937; margin-bottom: 20px;">📝 Smart Summarization</h3>
-                <form onsubmit="submitSummarization(event)">
-                    <div class="form-group">
-                        <label>Text to Summarize</label>
-                        <textarea name="content" rows="6" placeholder="Paste text or document content here..." required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Summary Style</label>
-                        <select name="style">
-                            <option value="concise">Concise (2-3 sentences)</option>
-                            <option value="detailed">Detailed (paragraph)</option>
-                            <option value="bullets">Bullet Points</option>
-                            <option value="executive">Executive Summary</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="submit-btn">Generate Summary</button>
-                </form>
-                <div class="result" id="summarize-result"></div>
-            </div>
+            <div class="result-content" id="result-content"></div>
         </div>
 
-        <style>
-            .form-btn {{
-                background: #667eea;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                margin: 5px;
-                border-radius: 6px;
-                cursor: pointer;
-                font-size: 14px;
-                font-weight: 500;
-                transition: all 0.2s ease;
-            }}
-            .form-btn:hover {{ background: #5a6fd8; }}
-            .form-btn.secondary {{ background: #6b7280; }}
-            .form-btn.secondary:hover {{ background: #4b5563; }}
-            
-            .form-container {{
-                display: none;
-                padding: 30px 40px;
-                background: white;
-                border-top: 1px solid #e5e7eb;
-            }}
-            .form-group {{
-                margin-bottom: 20px;
-            }}
-            .form-group label {{
-                display: block;
-                margin-bottom: 8px;
-                color: #1f2937;
-                font-weight: 500;
-                font-size: 14px;
-            }}
-            .form-group input, .form-group textarea, .form-group select {{
-                width: 100%;
-                padding: 12px;
-                border: 1px solid #d1d5db;
-                border-radius: 6px;
-                background: white;
-                color: #1f2937;
-                font-size: 14px;
-                font-family: inherit;
-            }}
-            .form-group input:focus, .form-group textarea:focus, .form-group select:focus {{
-                outline: none;
-                border-color: #667eea;
-                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            }}
-            .form-group input::placeholder, .form-group textarea::placeholder {{
-                color: #9ca3af;
-            }}
-            .submit-btn {{
-                background: #22c55e;
-                color: white;
-                border: none;
-                padding: 12px 24px;
-                border-radius: 6px;
-                cursor: pointer;
-                font-size: 14px;
-                font-weight: 600;
-                transition: all 0.2s ease;
-            }}
-            .submit-btn:hover {{
-                background: #16a34a;
-                transform: translateY(-1px);
-            }}
-            .result {{
-                background: #f3f4f6;
-                border: 1px solid #d1d5db;
-                border-radius: 6px;
-                padding: 20px;
-                margin-top: 20px;
-                font-family: 'Monaco', 'Consolas', monospace;
-                font-size: 12px;
-                white-space: pre-wrap;
-                display: none;
-                max-height: 400px;
-                overflow-y: auto;
-            }}
-        </style>
-
         <script>
+            // Show form for POST endpoints (matching other services behavior)
             function showForm(formType) {{
-                document.querySelectorAll('.form-container').forEach(form => {{
-                    form.style.display = 'none';
-                }});
-                document.getElementById(formType + '-form').style.display = 'block';
-                document.getElementById(formType + '-form').scrollIntoView({{ behavior: 'smooth' }});
+                // Hide all forms first
+                const forms = document.querySelectorAll('.form-area');
+                forms.forEach(form => form.classList.remove('show'));
+                
+                // Show the requested form
+                const form = document.getElementById(`form-${{formType}}`);
+                if (form) {{
+                    form.classList.add('show');
+                }}
             }}
-
-            function hideAllForms() {{
-                document.querySelectorAll('.form-container').forEach(form => {{
-                    form.style.display = 'none';
-                }});
+            
+            // Hide form
+            function hideForm(formType) {{
+                const form = document.getElementById(`form-${{formType}}`);
+                if (form) {{
+                    form.classList.remove('show');
+                }}
             }}
-
-            async function submitAnalysis(event) {{
-                event.preventDefault();
-                const formData = new FormData(event.target);
-                const data = Object.fromEntries(formData);
+            
+            // Call GET endpoints directly
+            async function callEndpoint(method, path) {{
+                showResult(`${{method}} ${{path}}`, 'Loading...');
+                
+                try {{
+                    const response = await fetch(path, {{ method: method }});
+                    const data = await response.json();
+                    showResult(`${{method}} ${{path}}`, JSON.stringify(data, null, 2));
+                }} catch (error) {{
+                    showResult(`${{method}} ${{path}}`, `Error: ${{error.message}}`);
+                }}
+            }}
+            
+            // Submit analysis form
+            async function submitAnalysis() {{
+                const content = document.getElementById('analyze-content').value;
+                const analysisType = document.getElementById('analyze-type').value;
+                
+                if (!content.trim()) {{
+                    alert('Please enter document text for analysis');
+                    return;
+                }}
+                
+                showResult('POST /analyze', 'Analyzing with AI...');
                 
                 try {{
                     const response = await fetch('/analyze', {{
                         method: 'POST',
                         headers: {{ 'Content-Type': 'application/json' }},
-                        body: JSON.stringify(data)
+                        body: JSON.stringify({{ content, analysis_type: analysisType }})
                     }});
+                    
                     const result = await response.json();
-                    document.getElementById('analyze-result').textContent = JSON.stringify(result, null, 2);
-                    document.getElementById('analyze-result').style.display = 'block';
+                    displayAIResult(result, 'Document Analysis');
+                    hideForm('analyze');
                 }} catch (e) {{
-                    document.getElementById('analyze-result').textContent = 'Error: ' + e.message;
-                    document.getElementById('analyze-result').style.display = 'block';
+                    showResult('POST /analyze', `Error: ${{e.message}}`);
                 }}
             }}
-
-            async function submitQA(event) {{
-                event.preventDefault();
-                const formData = new FormData(event.target);
-                const data = Object.fromEntries(formData);
+            
+            // Submit Q&A form
+            async function submitQA() {{
+                const question = document.getElementById('qa-question').value;
+                const context = document.getElementById('qa-context').value;
+                
+                if (!question.trim()) {{
+                    alert('Please enter a question');
+                    return;
+                }}
+                
+                showResult('POST /qa', 'Getting AI answer...');
                 
                 try {{
                     const response = await fetch('/qa', {{
                         method: 'POST',
                         headers: {{ 'Content-Type': 'application/json' }},
-                        body: JSON.stringify(data)
+                        body: JSON.stringify({{ question, context }})
                     }});
+                    
                     const result = await response.json();
-                    document.getElementById('qa-result').textContent = JSON.stringify(result, null, 2);
-                    document.getElementById('qa-result').style.display = 'block';
+                    displayAIResult(result, 'Q&A Response');
+                    hideForm('qa');
                 }} catch (e) {{
-                    document.getElementById('qa-result').textContent = 'Error: ' + e.message;
-                    document.getElementById('qa-result').style.display = 'block';
+                    showResult('POST /qa', `Error: ${{e.message}}`);
                 }}
             }}
-
-            async function submitSummarization(event) {{
-                event.preventDefault();
-                const formData = new FormData(event.target);
-                const data = Object.fromEntries(formData);
+            
+            // Submit summarization form
+            async function submitSummarization() {{
+                const content = document.getElementById('summarize-content').value;
+                const style = document.getElementById('summarize-style').value;
+                
+                if (!content.trim()) {{
+                    alert('Please enter text to summarize');
+                    return;
+                }}
+                
+                showResult('POST /summarize', 'Generating summary...');
                 
                 try {{
                     const response = await fetch('/summarize', {{
                         method: 'POST',
                         headers: {{ 'Content-Type': 'application/json' }},
-                        body: JSON.stringify(data)
+                        body: JSON.stringify({{ content, style }})
                     }});
+                    
                     const result = await response.json();
-                    document.getElementById('summarize-result').textContent = JSON.stringify(result, null, 2);
-                    document.getElementById('summarize-result').style.display = 'block';
+                    displayAIResult(result, 'Summary');
+                    hideForm('summarize');
                 }} catch (e) {{
-                    document.getElementById('summarize-result').textContent = 'Error: ' + e.message;
-                    document.getElementById('summarize-result').style.display = 'block';
+                    showResult('POST /summarize', `Error: ${{e.message}}`);
                 }}
+            }}
+            
+            // Display AI results in a user-friendly format
+            function displayAIResult(result, title) {{
+                if (!result.success) {{
+                    showResult(title, `Error: ${{result.error}}`);
+                    return;
+                }}
+                
+                let formattedResult = `${{title}} Result\\n`;
+                formattedResult += `Provider: ${{result.provider || 'OpenAI'}}\\n`;
+                if (result.model) formattedResult += `Model: ${{result.model}}\\n`;
+                formattedResult += `\\n`;
+                
+                if (result.analysis) {{
+                    formattedResult += `Analysis:\\n${{result.analysis}}`;
+                }} else if (result.answer) {{
+                    formattedResult += `Answer:\\n${{result.answer}}`;
+                }} else if (result.summary) {{
+                    formattedResult += `Summary (${{result.style}}):\\n${{result.summary}}`;
+                }} else {{
+                    formattedResult += JSON.stringify(result, null, 2);
+                }}
+                
+                showResult(title, formattedResult);
+            }}
+            
+            // Show result in the result area
+            function showResult(title, content) {{
+                document.getElementById('result-title').textContent = title;
+                document.getElementById('result-content').textContent = content;
+                document.getElementById('result-area').classList.add('show');
+                document.getElementById('result-area').scrollIntoView({{ behavior: 'smooth' }});
+            }}
+            
+            // Hide result area
+            function hideResult() {{
+                document.getElementById('result-area').classList.remove('show');
             }}
         </script>
     </body>
