@@ -69,7 +69,7 @@ async def dashboard():
     <body>
         <div class="container">
             <div class="header">
-                <h1>ðŸŽ¯ KM Orchestrator</h1>
+                <h1>🎯 KM Orchestrator</h1>
                 <p>Intelligent request routing and workflow orchestration for Knowledge Management System</p>
             </div>
             
@@ -97,7 +97,7 @@ async def dashboard():
             </div>
 
             <div class="endpoints-section">
-                <h2>ðŸš€ Orchestrator API Endpoints</h2>
+                <h2>🚀 Orchestrator API Endpoints</h2>
                 <div class="endpoints-grid">
                     <div class="endpoint-card">
                         <h4>/api/upload</h4>
@@ -156,7 +156,7 @@ async def dashboard():
                     const data = await response.json();
                     
                     // Update stats
-                    document.getElementById('system-status').textContent = data.status === 'healthy' ? 'âœ… Healthy' : 'âŒ Issues';
+                    document.getElementById('system-status').textContent = data.status === 'healthy' ? '✅ Healthy' : 'âŒ Issues';
                     document.getElementById('active-services').textContent = `${data.services_healthy}/${data.services_total}`;
                     document.getElementById('avg-response').textContent = data.avg_response_time + 'ms';
                     document.getElementById('total-requests').textContent = data.total_requests || '0';
@@ -333,4 +333,5 @@ async def execute_workflow(workflow_name: str, request: Dict[str, Any]):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)# Updated for deployment
+
 
