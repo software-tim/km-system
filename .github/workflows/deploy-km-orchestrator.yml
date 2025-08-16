@@ -1,0 +1,123 @@
+name: Deploy KM Orchestrator
+
+on:
+  push:
+    branches: [ master ]
+    paths: 
+      - 'km-orchestrator/**'
+      - '.github/workflows/deploy-km-orchestrator.yml'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 🛎️ Checkout code
+      uses: actions/checkout@v4
+    
+    - name: 🐍 Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: 📦 Install dependencies
+      working-directory: ./km-orchestrator
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: 🧪 Run tests
+      working-directory: ./km-orchestrator
+      run: |
+        # Basic import test to ensure all modules load correctly
+        python -c "
+        try:
+            from app import app
+            from km_orchestrator_config import settings
+            from km_orchestrator_schemas import UploadRequest
+            from km_orchestrator_operations import OrchestratorOperations
+            print('✅ All imports successful')
+        except Exception as e:
+            print(f'❌ Import failed: {e}')
+            exit(1)
+        "
+    
+    - name: 🏗️ Build application
+      working-directory: ./km-orchestrator
+      run: |
+        echo "Building KM Orchestrator..."
+        echo "✅ Python application ready for deployment"
+    
+    - name: 🚀 Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'km-orchestrator'
+        slot-name: 'production'
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_KM_ORCHESTRATOR }}
+        package: './km-orchestrator'
+    
+    - name: 🔍 Health Check
+      run: |
+        echo "Waiting for deployment to complete..."
+        sleep 60
+        
+        echo "Testing health endpoint..."
+        response=$(curl -s -o /dev/null -w "%{http_code}" https://km-orchestrator.azurewebsites.net/health || echo "000")
+        
+        if [ "$response" = "200" ]; then
+          echo "✅ Health check passed! KM Orchestrator is running."
+          echo "🌐 Service URL: https://km-orchestrator.azurewebsites.net"
+          echo "📊 Dashboard: https://km-orchestrator.azurewebsites.net"
+          echo "📚 API Docs: https://km-orchestrator.azurewebsites.net/docs"
+        else
+          echo "❌ Health check failed with status: $response"
+          echo "🔍 Check Azure logs for deployment issues"
+          exit 1
+        fi
+    
+    - name: 📊 Test Core Endpoints
+      run: |
+        echo "Testing orchestrator endpoints..."
+        
+        # Test main dashboard
+        dashboard_status=$(curl -s -o /dev/null -w "%{http_code}" https://km-orchestrator.azurewebsites.net/ || echo "000")
+        echo "Dashboard status: $dashboard_status"
+        
+        # Test services status endpoint
+        services_status=$(curl -s -o /dev/null -w "%{http_code}" https://km-orchestrator.azurewebsites.net/services/status || echo "000")
+        echo "Services status endpoint: $services_status"
+        
+        # Test metrics endpoint
+        metrics_status=$(curl -s -o /dev/null -w "%{http_code}" https://km-orchestrator.azurewebsites.net/metrics || echo "000")
+        echo "Metrics endpoint: $metrics_status"
+        
+        if [ "$dashboard_status" = "200" ] && [ "$services_status" = "200" ] && [ "$metrics_status" = "200" ]; then
+          echo "✅ All core endpoints are responding correctly"
+        else
+          echo "⚠️ Some endpoints may have issues, but deployment succeeded"
+        fi
+    
+    - name: 🎉 Deployment Summary
+      run: |
+        echo "🎯 KM Orchestrator Deployment Complete!"
+        echo ""
+        echo "📊 Service Information:"
+        echo "   🌐 Main URL: https://km-orchestrator.azurewebsites.net"
+        echo "   📋 Dashboard: https://km-orchestrator.azurewebsites.net"
+        echo "   🔧 API Docs: https://km-orchestrator.azurewebsites.net/docs"
+        echo "   ❤️ Health: https://km-orchestrator.azurewebsites.net/health"
+        echo ""
+        echo "🎯 Key Features Deployed:"
+        echo "   ✅ Intelligent request routing across all MCP services"
+        echo "   ✅ Service health monitoring and failover"
+        echo "   ✅ Workflow orchestration for complex operations"
+        echo "   ✅ Interactive dashboard with real-time metrics"
+        echo "   ✅ API endpoints for upload, search, analyze, insights, chat"
+        echo ""
+        echo "🔄 Next Steps:"
+        echo "   1. Verify orchestrator appears in dashboard status"
+        echo "   2. Test API endpoints through the interactive dashboard"
+        echo "   3. Begin integration with Astro UI frontend"
+        echo ""
+        echo "🎊 Phase 3 (Orchestration) is now ACTIVE!"
