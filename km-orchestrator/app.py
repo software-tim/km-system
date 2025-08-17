@@ -451,3 +451,5 @@ if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
 
+#   D e p l o y m e n t   t e s t  
+ 
