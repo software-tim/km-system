@@ -215,3 +215,11 @@ async def diagnostics_dashboard():
         return FileResponse("public/diagnostics.html")
     except FileNotFoundError:
         return HTMLResponse("<h1>Diagnostics dashboard not found</h1>")
+
+@app.get("/enhanced-diagnostics")
+async def enhanced_diagnostics():
+    """Enhanced diagnostics with CORS and connectivity analysis"""
+    try:
+        return FileResponse("public/enhanced-diagnostics.html")
+    except FileNotFoundError:
+        return HTMLResponse("<h1>Enhanced diagnostics not found</h1>")
