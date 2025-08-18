@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KM Orchestrator - Complete Dashboard</title>
+    <title>KM Orchestrator - Interactive Dashboard</title>
     <style>
         * {
             margin: 0;
@@ -123,6 +123,14 @@
             padding: 25px;
             position: relative;
             overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .capability-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
 
         .capability-card::before {
@@ -151,12 +159,14 @@
             font-size: 1.3rem;
             font-weight: bold;
             margin-bottom: 10px;
+            color: white;
         }
 
         .capability-desc {
             opacity: 0.9;
             line-height: 1.5;
             margin-bottom: 15px;
+            color: white;
         }
 
         .capability-services {
@@ -173,6 +183,17 @@
             font-weight: 500;
         }
 
+        .click-hint {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.3);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
         .endpoints-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -185,12 +206,14 @@
             border-radius: 10px;
             padding: 20px;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
 
         .endpoint-card:hover {
             border-color: #667eea;
             background: #f1f5f9;
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
 
         .endpoint-method {
@@ -241,6 +264,14 @@
             border-radius: 10px;
             padding: 20px;
             position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            border-color: #0369a1;
         }
 
         .service-card::before {
@@ -353,253 +384,373 @@
             min-height: 60px;
             white-space: pre-wrap;
         }
+
+        .back-button {
+            background: #6b7280;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: #4b5563;
+        }
+
+        .capability-page {
+            display: none;
+        }
+
+        .capability-page.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1>🎯 KM Orchestrator Dashboard</h1>
-            <p>Intelligent request routing and workflow orchestration for Knowledge Management System</p>
+        <!-- Main Dashboard -->
+        <div id="main-dashboard">
+            <!-- Header -->
+            <div class="header">
+                <h1>🎯 KM Orchestrator Dashboard</h1>
+                <p>Intelligent request routing and workflow orchestration for Knowledge Management System</p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">SYSTEM STATUS</div>
+                    <div class="stat-value green" id="systemStatus">All OK</div>
+                    <div class="stat-desc">Overall Health</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">ACTIVE SERVICES</div>
+                    <div class="stat-value blue" id="activeServices">4/4</div>
+                    <div class="stat-desc">MCP Services Online</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">AVG RESPONSE</div>
+                    <div class="stat-value orange" id="avgResponse">105ms</div>
+                    <div class="stat-desc">Cross-Service</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">TOTAL REQUESTS</div>
+                    <div class="stat-value purple" id="totalRequests">1,247</div>
+                    <div class="stat-desc">Since Startup</div>
+                </div>
+            </div>
+
+            <!-- Orchestrator Capabilities -->
+            <div class="section">
+                <h2>🚀 Orchestrator Capabilities</h2>
+                <div class="capabilities-grid">
+                    <div class="capability-card" onclick="showCapabilityPage('document-management')">
+                        <div class="click-hint">CLICK TO TEST</div>
+                        <span class="capability-icon">📄</span>
+                        <div class="capability-title">Document Management</div>
+                        <div class="capability-desc">Upload, process, and store documents across multiple formats (PDF, DOCX, TXT)</div>
+                        <div class="capability-services">
+                            <span class="service-tag">km-mcp-sql-docs</span>
+                            <span class="service-tag">km-mcp-graphrag</span>
+                        </div>
+                    </div>
+                    
+                    <div class="capability-card" onclick="showCapabilityPage('intelligent-search')">
+                        <div class="click-hint">CLICK TO TEST</div>
+                        <span class="capability-icon">🔍</span>
+                        <div class="capability-title">Intelligent Search</div>
+                        <div class="capability-desc">Semantic search across documents with relevance ranking and context extraction</div>
+                        <div class="capability-services">
+                            <span class="service-tag">km-mcp-search</span>
+                            <span class="service-tag">km-mcp-sql-docs</span>
+                        </div>
+                    </div>
+                    
+                    <div class="capability-card" onclick="showCapabilityPage('ai-chat')">
+                        <div class="click-hint">CLICK TO TEST</div>
+                        <span class="capability-icon">🤖</span>
+                        <div class="capability-title">AI Chat & Q&A</div>
+                        <div class="capability-desc">Natural language queries with context-aware responses using RAG</div>
+                        <div class="capability-services">
+                            <span class="service-tag">km-mcp-llm</span>
+                            <span class="service-tag">km-orchestrator</span>
+                        </div>
+                    </div>
+                    
+                    <div class="capability-card" onclick="showCapabilityPage('analytics-insights')">
+                        <div class="click-hint">CLICK TO TEST</div>
+                        <span class="capability-icon">📊</span>
+                        <div class="capability-title">Analytics & Insights</div>
+                        <div class="capability-desc">Generate summaries, extract insights, and analyze document patterns</div>
+                        <div class="capability-services">
+                            <span class="service-tag">km-mcp-graphrag</span>
+                            <span class="service-tag">km-mcp-llm</span>
+                        </div>
+                    </div>
+                    
+                    <div class="capability-card" onclick="showCapabilityPage('knowledge-graphs')">
+                        <div class="click-hint">CLICK TO TEST</div>
+                        <span class="capability-icon">🌐</span>
+                        <div class="capability-title">Knowledge Graphs</div>
+                        <div class="capability-desc">Build and query knowledge graphs for relationship discovery</div>
+                        <div class="capability-services">
+                            <span class="service-tag">km-mcp-graphrag</span>
+                        </div>
+                    </div>
+                    
+                    <div class="capability-card" onclick="showCapabilityPage('workflow-orchestration')">
+                        <div class="click-hint">CLICK TO TEST</div>
+                        <span class="capability-icon">⚡</span>
+                        <div class="capability-title">Workflow Orchestration</div>
+                        <div class="capability-desc">Coordinate multi-service workflows and data pipelines</div>
+                        <div class="capability-services">
+                            <span class="service-tag">km-orchestrator</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Flow Diagram -->
+            <div class="section">
+                <h2>🔄 Orchestrator Data Flow</h2>
+                <div class="workflow-diagram">
+                    <div class="workflow-step input">
+                        <strong>📥 Input</strong><br>
+                        Documents, Queries, Commands
+                    </div>
+                    <span class="workflow-arrow">→</span>
+                    <div class="workflow-step process">
+                        <strong>🎯 Orchestrator</strong><br>
+                        Route, Process, Coordinate
+                    </div>
+                    <span class="workflow-arrow">→</span>
+                    <div class="workflow-step process">
+                        <strong>🔧 MCP Services</strong><br>
+                        SQL, Search, LLM, GraphRAG
+                    </div>
+                    <span class="workflow-arrow">→</span>
+                    <div class="workflow-step output">
+                        <strong>📤 Output</strong><br>
+                        Responses, Insights, Results
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Endpoints -->
+            <div class="section">
+                <h2>🔌 Orchestrator API Endpoints</h2>
+                <div class="endpoints-grid">
+                    <div class="endpoint-card" onclick="window.open('/health', '_blank')">
+                        <span class="endpoint-method method-get">GET</span>
+                        <div class="endpoint-path">/health</div>
+                        <div class="endpoint-desc">Health check and service status</div>
+                        <div class="endpoint-example">Click to test endpoint</div>
+                    </div>
+
+                    <div class="endpoint-card" onclick="window.open('/services/status', '_blank')">
+                        <span class="endpoint-method method-get">GET</span>
+                        <div class="endpoint-path">/services/status</div>
+                        <div class="endpoint-desc">Check status of all MCP services</div>
+                        <div class="endpoint-example">Click to test endpoint</div>
+                    </div>
+
+                    <div class="endpoint-card" onclick="showCapabilityPage('ai-chat')">
+                        <span class="endpoint-method method-post">POST</span>
+                        <div class="endpoint-path">/api/chat</div>
+                        <div class="endpoint-desc">AI-powered chat with document search integration</div>
+                        <div class="endpoint-example">Click to test chat interface</div>
+                    </div>
+
+                    <div class="endpoint-card" onclick="window.open('/docs', '_blank')">
+                        <span class="endpoint-method method-get">GET</span>
+                        <div class="endpoint-path">/docs</div>
+                        <div class="endpoint-desc">Interactive API documentation</div>
+                        <div class="endpoint-example">Click to view documentation</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MCP Services -->
+            <div class="section">
+                <h2>🛠️ Connected MCP Services</h2>
+                <div class="services-grid">
+                    <div class="service-card" onclick="window.open('https://km-mcp-sql-docs.azurewebsites.net', '_blank')">
+                        <div class="service-name">km-mcp-sql-docs</div>
+                        <div class="service-desc">Document storage and management with PostgreSQL backend</div>
+                        <div class="service-features">
+                            <span class="feature-tag">Upload</span>
+                            <span class="feature-tag">Storage</span>
+                            <span class="feature-tag">Metadata</span>
+                            <span class="feature-tag">Search</span>
+                        </div>
+                    </div>
+
+                    <div class="service-card" onclick="window.open('https://km-mcp-search.azurewebsites.net', '_blank')">
+                        <div class="service-name">km-mcp-search</div>
+                        <div class="service-desc">Advanced semantic search with embedding-based similarity</div>
+                        <div class="service-features">
+                            <span class="feature-tag">Semantic Search</span>
+                            <span class="feature-tag">Embeddings</span>
+                            <span class="feature-tag">Ranking</span>
+                        </div>
+                    </div>
+
+                    <div class="service-card" onclick="window.open('https://km-mcp-llm.azurewebsites.net', '_blank')">
+                        <div class="service-name">km-mcp-llm</div>
+                        <div class="service-desc">Large Language Model integration for AI responses</div>
+                        <div class="service-features">
+                            <span class="feature-tag">RAG</span>
+                            <span class="feature-tag">Q&A</span>
+                            <span class="feature-tag">Summarization</span>
+                            <span class="feature-tag">Analysis</span>
+                        </div>
+                    </div>
+
+                    <div class="service-card" onclick="window.open('https://km-mcp-graphrag.azurewebsites.net', '_blank')">
+                        <div class="service-name">km-mcp-graphrag</div>
+                        <div class="service-desc">Knowledge graph construction and graph-based RAG</div>
+                        <div class="service-features">
+                            <span class="feature-tag">Knowledge Graphs</span>
+                            <span class="feature-tag">Relationships</span>
+                            <span class="feature-tag">Graph RAG</span>
+                            <span class="feature-tag">Insights</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Stats -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">SYSTEM STATUS</div>
-                <div class="stat-value green" id="systemStatus">All OK</div>
-                <div class="stat-desc">Overall Health</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">ACTIVE SERVICES</div>
-                <div class="stat-value blue" id="activeServices">4/4</div>
-                <div class="stat-desc">MCP Services Online</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">AVG RESPONSE</div>
-                <div class="stat-value orange" id="avgResponse">105ms</div>
-                <div class="stat-desc">Cross-Service</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">TOTAL REQUESTS</div>
-                <div class="stat-value purple" id="totalRequests">1,247</div>
-                <div class="stat-desc">Since Startup</div>
-            </div>
-        </div>
-
-        <!-- Orchestrator Capabilities -->
-        <div class="section">
-            <h2>🚀 Orchestrator Capabilities</h2>
-            <div class="capabilities-grid">
-                <div class="capability-card">
-                    <span class="capability-icon">📄</span>
-                    <div class="capability-title">Document Management</div>
-                    <div class="capability-desc">Upload, process, and store documents across multiple formats (PDF, DOCX, TXT)</div>
-                    <div class="capability-services">
-                        <span class="service-tag">km-mcp-sql-docs</span>
-                        <span class="service-tag">km-mcp-graphrag</span>
-                    </div>
+        <!-- Capability Testing Pages -->
+        <div id="document-management" class="capability-page">
+            <button class="back-button" onclick="showMainDashboard()">← Back to Dashboard</button>
+            <div class="section">
+                <h2>📄 Document Management Testing</h2>
+                <div class="test-panel">
+                    <h3>Upload Document</h3>
+                    <input type="file" id="docUpload" accept=".pdf,.docx,.txt">
+                    <input type="text" class="test-input" placeholder="Document title..." id="docTitle">
+                    <button class="test-button" onclick="testDocumentUpload()">Upload Document</button>
+                    <div class="test-response" id="uploadResponse">Upload results will appear here...</div>
                 </div>
-                
-                <div class="capability-card">
-                    <span class="capability-icon">🔍</span>
-                    <div class="capability-title">Intelligent Search</div>
-                    <div class="capability-desc">Semantic search across documents with relevance ranking and context extraction</div>
-                    <div class="capability-services">
-                        <span class="service-tag">km-mcp-search</span>
-                        <span class="service-tag">km-mcp-sql-docs</span>
-                    </div>
-                </div>
-                
-                <div class="capability-card">
-                    <span class="capability-icon">🤖</span>
-                    <div class="capability-title">AI Chat & Q&A</div>
-                    <div class="capability-desc">Natural language queries with context-aware responses using RAG</div>
-                    <div class="capability-services">
-                        <span class="service-tag">km-mcp-llm</span>
-                        <span class="service-tag">km-orchestrator</span>
-                    </div>
-                </div>
-                
-                <div class="capability-card">
-                    <span class="capability-icon">📊</span>
-                    <div class="capability-title">Analytics & Insights</div>
-                    <div class="capability-desc">Generate summaries, extract insights, and analyze document patterns</div>
-                    <div class="capability-services">
-                        <span class="service-tag">km-mcp-graphrag</span>
-                        <span class="service-tag">km-mcp-llm</span>
-                    </div>
-                </div>
-                
-                <div class="capability-card">
-                    <span class="capability-icon">🌐</span>
-                    <div class="capability-title">Knowledge Graphs</div>
-                    <div class="capability-desc">Build and query knowledge graphs for relationship discovery</div>
-                    <div class="capability-services">
-                        <span class="service-tag">km-mcp-graphrag</span>
-                    </div>
-                </div>
-                
-                <div class="capability-card">
-                    <span class="capability-icon">⚡</span>
-                    <div class="capability-title">Workflow Orchestration</div>
-                    <div class="capability-desc">Coordinate multi-service workflows and data pipelines</div>
-                    <div class="capability-services">
-                        <span class="service-tag">km-orchestrator</span>
-                    </div>
+                <div class="test-panel">
+                    <h3>List Documents</h3>
+                    <button class="test-button" onclick="listDocuments()">Get All Documents</button>
+                    <div class="test-response" id="docListResponse">Document list will appear here...</div>
                 </div>
             </div>
         </div>
 
-        <!-- Data Flow Diagram -->
-        <div class="section">
-            <h2>🔄 Orchestrator Data Flow</h2>
-            <div class="workflow-diagram">
-                <div class="workflow-step input">
-                    <strong>📥 Input</strong><br>
-                    Documents, Queries, Commands
+        <div id="intelligent-search" class="capability-page">
+            <button class="back-button" onclick="showMainDashboard()">← Back to Dashboard</button>
+            <div class="section">
+                <h2>🔍 Intelligent Search Testing</h2>
+                <div class="test-panel">
+                    <h3>Semantic Search</h3>
+                    <input type="text" class="test-input" id="searchQuery" placeholder="Enter search query...">
+                    <input type="number" class="test-input" id="searchLimit" placeholder="Number of results (default: 5)" value="5">
+                    <button class="test-button" onclick="testSearch()">Search Documents</button>
+                    <div class="test-response" id="searchResponse">Search results will appear here...</div>
                 </div>
-                <span class="workflow-arrow">→</span>
-                <div class="workflow-step process">
-                    <strong>🎯 Orchestrator</strong><br>
-                    Route, Process, Coordinate
-                </div>
-                <span class="workflow-arrow">→</span>
-                <div class="workflow-step process">
-                    <strong>🔧 MCP Services</strong><br>
-                    SQL, Search, LLM, GraphRAG
-                </div>
-                <span class="workflow-arrow">→</span>
-                <div class="workflow-step output">
-                    <strong>📤 Output</strong><br>
-                    Responses, Insights, Results
+                <div class="test-panel">
+                    <h3>Search Analytics</h3>
+                    <button class="test-button" onclick="getSearchStats()">Get Search Statistics</button>
+                    <div class="test-response" id="searchStatsResponse">Search statistics will appear here...</div>
                 </div>
             </div>
         </div>
 
-        <!-- API Endpoints -->
-        <div class="section">
-            <h2>🔌 Orchestrator API Endpoints</h2>
-            <div class="endpoints-grid">
-                <div class="endpoint-card">
-                    <span class="endpoint-method method-get">GET</span>
-                    <div class="endpoint-path">/health</div>
-                    <div class="endpoint-desc">Health check and service status</div>
-                    <div class="endpoint-example">curl https://km-orchestrator.azurewebsites.net/health</div>
+        <div id="ai-chat" class="capability-page">
+            <button class="back-button" onclick="showMainDashboard()">← Back to Dashboard</button>
+            <div class="section">
+                <h2>🤖 AI Chat & Q&A Testing</h2>
+                <div class="test-panel">
+                    <h3>Interactive Chat</h3>
+                    <input type="text" class="test-input" id="chatInput" placeholder="Ask me anything about your documents...">
+                    <button class="test-button" onclick="testChat()">Send Message</button>
+                    <div class="test-response" id="chatResponse">AI responses will appear here...</div>
                 </div>
-
-                <div class="endpoint-card">
-                    <span class="endpoint-method method-get">GET</span>
-                    <div class="endpoint-path">/services/status</div>
-                    <div class="endpoint-desc">Check status of all MCP services</div>
-                    <div class="endpoint-example">Returns: {service: status, response_time: ms}</div>
-                </div>
-
-                <div class="endpoint-card">
-                    <span class="endpoint-method method-post">POST</span>
-                    <div class="endpoint-path">/api/chat</div>
-                    <div class="endpoint-desc">AI-powered chat with document search integration</div>
-                    <div class="endpoint-example">POST: {"message": "What documents do you have about AI?"}</div>
-                    <div class="test-panel">
-                        <input type="text" class="test-input" id="chatInput" placeholder="Enter your question...">
-                        <button class="test-button" onclick="testChat()">Test Chat</button>
-                        <div class="test-response" id="chatResponse">Response will appear here...</div>
-                    </div>
-                </div>
-
-                <div class="endpoint-card">
-                    <span class="endpoint-method method-post">POST</span>
-                    <div class="endpoint-path">/api/documents/upload</div>
-                    <div class="endpoint-desc">Upload and process documents</div>
-                    <div class="endpoint-example">POST: FormData with file → Routes to km-mcp-sql-docs</div>
-                </div>
-
-                <div class="endpoint-card">
-                    <span class="endpoint-method method-get">GET</span>
-                    <div class="endpoint-path">/api/documents/search</div>
-                    <div class="endpoint-desc">Search documents with semantic similarity</div>
-                    <div class="endpoint-example">GET: ?query=artificial intelligence&limit=10</div>
-                    <div class="test-panel">
-                        <input type="text" class="test-input" id="searchInput" placeholder="Search query...">
-                        <button class="test-button" onclick="testSearch()">Test Search</button>
-                        <div class="test-response" id="searchResponse">Search results will appear here...</div>
-                    </div>
-                </div>
-
-                <div class="endpoint-card">
-                    <span class="endpoint-method method-post">POST</span>
-                    <div class="endpoint-path">/api/insights/generate</div>
-                    <div class="endpoint-desc">Generate insights from document collection</div>
-                    <div class="endpoint-example">POST: {"type": "summary", "documents": [ids]} → Routes to GraphRAG</div>
-                </div>
-
-                <div class="endpoint-card">
-                    <span class="endpoint-method method-get">GET</span>
-                    <div class="endpoint-path">/api/analytics/stats</div>
-                    <div class="endpoint-desc">Get analytics and usage statistics</div>
-                    <div class="endpoint-example">Returns: document counts, search metrics, service usage</div>
-                </div>
-
-                <div class="endpoint-card">
-                    <span class="endpoint-method method-get">GET</span>
-                    <div class="endpoint-path">/docs</div>
-                    <div class="endpoint-desc">Interactive API documentation</div>
-                    <div class="endpoint-example">Swagger/OpenAPI documentation interface</div>
+                <div class="test-panel">
+                    <h3>Example Queries</h3>
+                    <button class="test-button" onclick="testExampleQuery('artificial intelligence')">Test: "artificial intelligence"</button>
+                    <button class="test-button" onclick="testExampleQuery('machine learning')">Test: "machine learning"</button>
+                    <button class="test-button" onclick="testExampleQuery('What documents do you have?')">Test: "What documents do you have?"</button>
                 </div>
             </div>
         </div>
 
-        <!-- MCP Services -->
-        <div class="section">
-            <h2>🛠️ Connected MCP Services</h2>
-            <div class="services-grid">
-                <div class="service-card">
-                    <div class="service-name">km-mcp-sql-docs</div>
-                    <div class="service-desc">Document storage and management with PostgreSQL backend</div>
-                    <div class="service-features">
-                        <span class="feature-tag">Upload</span>
-                        <span class="feature-tag">Storage</span>
-                        <span class="feature-tag">Metadata</span>
-                        <span class="feature-tag">Search</span>
-                    </div>
+        <div id="analytics-insights" class="capability-page">
+            <button class="back-button" onclick="showMainDashboard()">← Back to Dashboard</button>
+            <div class="section">
+                <h2>📊 Analytics & Insights Testing</h2>
+                <div class="test-panel">
+                    <h3>System Analytics</h3>
+                    <button class="test-button" onclick="getAnalytics()">Get System Analytics</button>
+                    <div class="test-response" id="analyticsResponse">Analytics data will appear here...</div>
                 </div>
-
-                <div class="service-card">
-                    <div class="service-name">km-mcp-search</div>
-                    <div class="service-desc">Advanced semantic search with embedding-based similarity</div>
-                    <div class="service-features">
-                        <span class="feature-tag">Semantic Search</span>
-                        <span class="feature-tag">Embeddings</span>
-                        <span class="feature-tag">Ranking</span>
-                    </div>
+                <div class="test-panel">
+                    <h3>Document Insights</h3>
+                    <button class="test-button" onclick="getDocumentInsights()">Generate Document Insights</button>
+                    <div class="test-response" id="insightsResponse">Document insights will appear here...</div>
                 </div>
+            </div>
+        </div>
 
-                <div class="service-card">
-                    <div class="service-name">km-mcp-llm</div>
-                    <div class="service-desc">Large Language Model integration for AI responses</div>
-                    <div class="service-features">
-                        <span class="feature-tag">RAG</span>
-                        <span class="feature-tag">Q&A</span>
-                        <span class="feature-tag">Summarization</span>
-                        <span class="feature-tag">Analysis</span>
-                    </div>
+        <div id="knowledge-graphs" class="capability-page">
+            <button class="back-button" onclick="showMainDashboard()">← Back to Dashboard</button>
+            <div class="section">
+                <h2>🌐 Knowledge Graphs Testing</h2>
+                <div class="test-panel">
+                    <h3>Graph Construction</h3>
+                    <button class="test-button" onclick="buildKnowledgeGraph()">Build Knowledge Graph</button>
+                    <div class="test-response" id="graphResponse">Knowledge graph results will appear here...</div>
                 </div>
+                <div class="test-panel">
+                    <h3>Relationship Discovery</h3>
+                    <input type="text" class="test-input" id="entityQuery" placeholder="Enter entity to find relationships...">
+                    <button class="test-button" onclick="findRelationships()">Find Relationships</button>
+                    <div class="test-response" id="relationResponse">Relationship data will appear here...</div>
+                </div>
+            </div>
+        </div>
 
-                <div class="service-card">
-                    <div class="service-name">km-mcp-graphrag</div>
-                    <div class="service-desc">Knowledge graph construction and graph-based RAG</div>
-                    <div class="service-features">
-                        <span class="feature-tag">Knowledge Graphs</span>
-                        <span class="feature-tag">Relationships</span>
-                        <span class="feature-tag">Graph RAG</span>
-                        <span class="feature-tag">Insights</span>
-                    </div>
+        <div id="workflow-orchestration" class="capability-page">
+            <button class="back-button" onclick="showMainDashboard()">← Back to Dashboard</button>
+            <div class="section">
+                <h2>⚡ Workflow Orchestration Testing</h2>
+                <div class="test-panel">
+                    <h3>Service Status</h3>
+                    <button class="test-button" onclick="checkAllServices()">Check All Services</button>
+                    <div class="test-response" id="servicesResponse">Service status will appear here...</div>
+                </div>
+                <div class="test-panel">
+                    <h3>Orchestration Test</h3>
+                    <button class="test-button" onclick="testOrchestration()">Test Multi-Service Workflow</button>
+                    <div class="test-response" id="orchestrationResponse">Orchestration results will appear here...</div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // Navigation functions
+        function showCapabilityPage(pageId) {
+            document.getElementById('main-dashboard').style.display = 'none';
+            document.querySelectorAll('.capability-page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        function showMainDashboard() {
+            document.getElementById('main-dashboard').style.display = 'block';
+            document.querySelectorAll('.capability-page').forEach(page => {
+                page.classList.remove('active');
+            });
+        }
+
         // Test Chat Function
         async function testChat() {
             const input = document.getElementById('chatInput');
@@ -627,13 +778,62 @@
             }
         }
 
-        // Test Search Function
-        async function testSearch() {
-            const input = document.getElementById('searchInput');
-            const response = document.getElementById('searchResponse');
-            const query = input.value.trim();
+        // Test example queries
+        async function testExampleQuery(query) {
+            document.getElementById('chatInput').value = query;
+            await testChat();
+        }
+
+        // Document Management Functions
+        async function testDocumentUpload() {
+            const fileInput = document.getElementById('docUpload');
+            const titleInput = document.getElementById('docTitle');
+            const response = document.getElementById('uploadResponse');
             
-            if (!query) {
+            if (!fileInput.files[0]) {
+                response.textContent = 'Please select a file to upload.';
+                return;
+            }
+            
+            response.textContent = 'Uploading document...';
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                formData.append('title', titleInput.value || fileInput.files[0].name);
+                
+                const result = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await result.json();
+                response.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                response.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function listDocuments() {
+            const response = document.getElementById('docListResponse');
+            response.textContent = 'Loading documents...';
+            
+            try {
+                const result = await fetch('https://km-mcp-sql-docs.azurewebsites.net/docs');
+                const data = await result.json();
+                response.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                response.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Search Functions
+        async function testSearch() {
+            const query = document.getElementById('searchQuery').value;
+            const limit = document.getElementById('searchLimit').value;
+            const response = document.getElementById('searchResponse');
+            
+            if (!query.trim()) {
                 response.textContent = 'Please enter a search query.';
                 return;
             }
@@ -641,9 +841,159 @@
             response.textContent = 'Searching documents...';
             
             try {
-                const result = await fetch(`/api/documents/search?query=${encodeURIComponent(query)}&limit=5`);
+                const result = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: query, limit: parseInt(limit) })
+                });
+                
                 const data = await result.json();
                 response.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                response.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function getSearchStats() {
+            const response = document.getElementById('searchStatsResponse');
+            response.textContent = 'Loading search statistics...';
+            
+            try {
+                const result = await fetch('https://km-mcp-sql-docs.azurewebsites.net/stats');
+                const data = await result.json();
+                response.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                response.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Analytics Functions
+        async function getAnalytics() {
+            const response = document.getElementById('analyticsResponse');
+            response.textContent = 'Loading analytics...';
+            
+            try {
+                const result = await fetch('/services/status');
+                const data = await result.json();
+                response.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                response.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function getDocumentInsights() {
+            const response = document.getElementById('insightsResponse');
+            response.textContent = 'Generating insights...';
+            
+            try {
+                const result = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'insights', scope: 'all_documents' })
+                });
+                
+                const data = await result.json();
+                response.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                response.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Knowledge Graph Functions
+        async function buildKnowledgeGraph() {
+            const response = document.getElementById('graphResponse');
+            response.textContent = 'Building knowledge graph...';
+            
+            try {
+                const result = await fetch('https://km-mcp-graphrag.azurewebsites.net/build-graph', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ source: 'all_documents' })
+                });
+                
+                const data = await result.json();
+                response.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                response.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function findRelationships() {
+            const entity = document.getElementById('entityQuery').value;
+            const response = document.getElementById('relationResponse');
+            
+            if (!entity.trim()) {
+                response.textContent = 'Please enter an entity to search for.';
+                return;
+            }
+            
+            response.textContent = 'Finding relationships...';
+            
+            try {
+                const result = await fetch('https://km-mcp-graphrag.azurewebsites.net/relationships', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ entity: entity })
+                });
+                
+                const data = await result.json();
+                response.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                response.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Workflow Functions
+        async function checkAllServices() {
+            const response = document.getElementById('servicesResponse');
+            response.textContent = 'Checking all services...';
+            
+            try {
+                const result = await fetch('/services/status');
+                const data = await result.json();
+                response.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                response.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function testOrchestration() {
+            const response = document.getElementById('orchestrationResponse');
+            response.textContent = 'Testing orchestration workflow...';
+            
+            try {
+                // Test a multi-step workflow
+                const steps = [];
+                
+                // Step 1: Check services
+                const servicesResult = await fetch('/services/status');
+                const servicesData = await servicesResult.json();
+                steps.push({ step: 'services_check', result: servicesData });
+                
+                // Step 2: Test search
+                const searchResult = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: 'test', limit: 1 })
+                });
+                const searchData = await searchResult.json();
+                steps.push({ step: 'search_test', result: searchData });
+                
+                // Step 3: Test chat
+                const chatResult = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: 'orchestration test' })
+                });
+                const chatData = await chatResult.json();
+                steps.push({ step: 'chat_test', result: chatData });
+                
+                response.textContent = JSON.stringify({ 
+                    workflow: 'multi_service_test',
+                    steps: steps,
+                    timestamp: new Date().toISOString()
+                }, null, 2);
+                
             } catch (error) {
                 response.textContent = `Error: ${error.message}`;
             }
