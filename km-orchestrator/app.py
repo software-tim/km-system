@@ -395,32 +395,56 @@ async def analyze_orchestration(request: Request):
 
 @app.post("/api/chat")
 async def chat_orchestration(request: Request):
-    """Orchestrate interactive chat across services"""
+    """Simple working chat with document search"""
     try:
         body = await request.json()
+        user_message = body.get("message", "")
+        
+        # Search for documents
+        search_count = 0
+        ai_response = "Hello! I'm your knowledge base assistant."
+        
+        if user_message:
+            try:
+                async with httpx.AsyncClient(timeout=10.0) as client:
+                    search_response = await client.post(
+                        "https://km-mcp-sql-docs.azurewebsites.net/tools/search-documents",
+                        json={"query": user_message, "limit": 5}
+                    )
+                    if search_response.status_code == 200:
+                        search_data = search_response.json()
+                        if search_data.get("success"):
+                            documents = search_data.get("documents", [])
+                            search_count = len(documents)
+                            
+                            if search_count > 0:
+                                titles = [doc.get("title", "Untitled") for doc in documents[:3]]
+                                ai_response = f"I found {search_count} documents about '{user_message}'. Top results: {', '.join(titles)}. The AI analysis feature is being enhanced."
+                            else:
+                                ai_response = f"I searched for '{user_message}' but didn't find matching documents. Try topics like 'artificial intelligence', 'machine learning', or 'orchestrator'."
+            except:
+                ai_response = f"I'm having trouble searching for '{user_message}' right now. The search service may be temporarily unavailable."
+        
         return {
-            "status": "chat_ready", 
-            "message": "Chat orchestration endpoint - routes across all MCP services",
-            "request": body
+            "user_message": user_message,
+            "relevant_documents": search_count,
+            "ai_response": ai_response,
+            "status": "success" if search_count > 0 else "no_results",
+            "timestamp": datetime.utcnow().isoformat()
         }
+        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/api/insights")
-async def insights_orchestration(request: Request):
-    """Generate insights across all services"""
-    try:
-        body = await request.json()
         return {
-            "status": "insights_ready", 
-            "message": "Insights orchestration endpoint - combines data from all services",
-            "request": body
+            "user_message": "Error",
+            "relevant_documents": 0,
+            "ai_response": "I'm experiencing technical difficulties. Please try again.",
+            "status": "error",
+            "timestamp": datetime.utcnow().isoformat()
         }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
 
 
