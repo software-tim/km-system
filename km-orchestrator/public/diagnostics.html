@@ -343,7 +343,7 @@
                         <div class="service-name">km-mcp-sql-docs</div>
                         <div class="service-url">https://km-mcp-sql-docs.azurewebsites.net</div>
                     </div>
-                    <button class="test-button" onclick="testServiceConnectivity('km-mcp-sql-docs', 'docs-connectivity')">Test</button>
+                    <button class="test-button" onclick="testEndpoint('/proxy/docs-health', 'docs-connectivity')">Test</button>
                 </div>
                 <div class="test-response" id="docs-connectivity">Not tested</div>
 
@@ -745,7 +745,7 @@
                 () => testGraphRAGHealth('graphrag-health-result'),
                 () => testBuildGraph('build-graph-result'),
                 () => testRelationships('relationships-result'),
-                () => testServiceConnectivity('km-mcp-sql-docs', 'docs-connectivity'),
+                () => testEndpoint('/proxy/docs-health', 'docs-connectivity'),
                 () => testServiceConnectivity('km-mcp-search', 'search-connectivity'),
                 () => testServiceConnectivity('km-mcp-llm', 'llm-connectivity'),
                 () => testServiceConnectivity('km-mcp-graphrag', 'graphrag-connectivity')
@@ -760,6 +760,7 @@
     </script>
 </body>
 </html>
+
 
 
 
