@@ -1,0 +1,37 @@
+﻿name: Deploy KM Orchestrator UI to Azure
+
+on:
+  push:
+    branches: [ master, main ]
+    paths:
+      - 'km-orchestrator-ui/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: km-orchestrator-ui/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+      working-directory: ./km-orchestrator-ui
+    
+    - name: Build application
+      run: npm run build
+      working-directory: ./km-orchestrator-ui
+      
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'km-orchestrator-ui'
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_KM_UI }}
+        package: ./km-orchestrator-ui/dist
