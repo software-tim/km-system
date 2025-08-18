@@ -627,7 +627,8 @@ async def upload_document(request: Request):
             "success": False,
             "message": f"Upload error: {str(e)}",
             "status": "error"
-        }@app.post("/api/search")
+        }
+@app.post("/api/search")
 async def search_documents(request: Request):
     """Search documents via orchestrator - FIXED JSON HANDLING"""
     try:
