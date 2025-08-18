@@ -693,6 +693,12 @@ async def get_documents_for_search(request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
+
+@app.get("/stats")
+async def get_stats():
+    """Alias for /tools/database-stats - for dashboard compatibility"""
+    return await get_database_stats()
+
 if __name__ == "__main__":
     import uvicorn
     import os
