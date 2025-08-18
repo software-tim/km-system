@@ -719,6 +719,52 @@ async def debug_cors_page():
         return FileResponse("public/debug-cors.html")
     except FileNotFoundError:
         return HTMLResponse("<h1>Debug page not found</h1>")
+@app.get("/api/simple-test")
+async def simple_test():
+    """Health check for all MCP services"""
+    services = [
+        {'name': 'km-mcp-sql-docs', 'title': 'SQL Docs Service', 'icon': '📚', 'url': SERVICES['km-mcp-sql-docs']},
+        {'name': 'km-mcp-search', 'title': 'Search Service', 'icon': '🔍', 'url': SERVICES['km-mcp-search']},
+        {'name': 'km-mcp-llm', 'title': 'LLM Service', 'icon': '🤖', 'url': SERVICES['km-mcp-llm']},
+        {'name': 'km-mcp-graphrag', 'title': 'GraphRAG Service', 'icon': '🕸️', 'url': SERVICES['km-mcp-graphrag']}
+    ]
+    
+    results = []
+    for service in services:
+        start_time = datetime.utcnow()
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.get(f"{service['url']}/health")
+                end_time = datetime.utcnow()
+                response_time = int((end_time - start_time).total_seconds() * 1000)
+                
+                results.append({
+                    **service,
+                    'status': 'healthy' if response.status_code == 200 else 'unhealthy',
+                    'responseTime': response_time,
+                    'statusCode': response.status_code,
+                    'lastChecked': datetime.utcnow().isoformat()
+                })
+        except Exception as error:
+            end_time = datetime.utcnow()
+            response_time = int((end_time - start_time).total_seconds() * 1000)
+            results.append({
+                **service,
+                'status': 'unhealthy',
+                'responseTime': response_time,
+                'error': str(error),
+                'lastChecked': datetime.utcnow().isoformat()
+            })
+    
+    return {
+        'timestamp': datetime.utcnow().isoformat(),
+        'services': results,
+        'summary': {
+            'total': len(results),
+            'healthy': len([s for s in results if s['status'] == 'healthy']),
+            'unhealthy': len([s for s in results if s['status'] == 'unhealthy'])
+        }
+    }
 
 
 
