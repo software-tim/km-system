@@ -325,12 +325,12 @@
                 </div>
                 <div class="endpoint-test">
                     <div class="endpoint-path">km-mcp-graphrag /build-graph</div>
-                    <button class="test-button" onclick="testBuildGraph('build-graph-result')">Test Build Graph</button>
+                    <button class="test-button" onclick="testEndpoint('/service-diagnostics', 'build-graph-result')">Test Build Graph</button>
                     <div class="test-response" id="build-graph-result">Click test to check...</div>
                 </div>
                 <div class="endpoint-test">
                     <div class="endpoint-path">km-mcp-graphrag /relationships</div>
-                    <button class="test-button" onclick="testRelationships('relationships-result')">Test Relationships</button>
+                    <button class="test-button" onclick="testEndpoint('/service-diagnostics', 'relationships-result')">Test Relationships</button>
                     <div class="test-response" id="relationships-result">Click test to check...</div>
                 </div>
             </div>
@@ -743,8 +743,8 @@
                 () => testAnalyze('analyze-result'),
                 () => testRAG('rag-result'),
                 () => testGraphRAGHealth('graphrag-health-result'),
-                () => testBuildGraph('build-graph-result'),
-                () => testRelationships('relationships-result'),
+                () => testEndpoint('/service-diagnostics', 'build-graph-result'),
+                () => testEndpoint('/service-diagnostics', 'relationships-result'),
                 () => testEndpoint('/proxy/docs-health', 'docs-connectivity'),
                 () => testServiceConnectivity('km-mcp-search', 'search-connectivity'),
                 () => testServiceConnectivity('km-mcp-llm', 'llm-connectivity'),
@@ -760,6 +760,7 @@
     </script>
 </body>
 </html>
+
 
 
 
