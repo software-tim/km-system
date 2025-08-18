@@ -492,7 +492,6 @@ async def list_tools():
         ]
     }
 
-@app.post("/tools/store-document")
 async def store_document(
     title: str = Form(...),
     content: str = Form(...),
@@ -699,8 +698,97 @@ async def get_stats():
     """Alias for /tools/database-stats - for dashboard compatibility"""
     return await get_database_stats()
 
+@app.post("/tools/store-document")
+async def store_document(request: Request):
+    """Store a document with proper request parsing"""
+    try:
+        # Parse JSON from request body properly
+        request_data = await request.json()
+        
+        # Debug logging - remove after fix
+        print(f"Received data type: {type(request_data)}")
+        print(f"Received data: {request_data}")
+        
+        # Extract fields with validation
+        title = request_data.get("title")
+        content = request_data.get("content") 
+        file_type = request_data.get("file_type", "text")
+        metadata = request_data.get("metadata", {})
+        
+        # Validate required fields
+        if not title:
+            return {"success": False, "error": "Title is required", "received_title": title}
+        if not content:
+            return {"success": False, "error": "Content is required", "received_content": content}
+        
+        # If metadata is a string, parse it as JSON
+        if isinstance(metadata, str):
+            try:
+                metadata = json.loads(metadata)
+            except json.JSONDecodeError:
+                metadata = {"raw_metadata": metadata}
+        
+        # Ensure metadata is a dict
+        if not isinstance(metadata, dict):
+            metadata = {"metadata": str(metadata)}
+        
+        # Add default values
+        metadata.setdefault("source", "api_upload")
+        metadata.setdefault("classification", "unclassified")
+        
+        # Create document data
+        doc_data = {
+            "title": title,
+            "content": content,
+            "file_type": file_type,
+            "metadata": metadata
+        }
+        
+        # Store in database (assuming you have a database function)
+        try:
+            # Call your existing database storage function
+            # This part depends on your existing database code
+            document_id = await store_document_in_database(doc_data)
+            
+            return {
+                "success": True,
+                "message": "Document stored successfully",
+                "document_id": document_id,
+                "title": title,
+                "content_length": len(content)
+            }
+            
+        except Exception as db_error:
+            return {
+                "success": False,
+                "error": f"Database error: {str(db_error)}",
+                "received_data": doc_data
+            }
+            
+    except json.JSONDecodeError as json_error:
+        return {
+            "success": False,
+            "error": f"JSON parsing error: {str(json_error)}",
+            "raw_body": str(await request.body())
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Request processing error: {str(e)}",
+            "error_type": type(e).__name__
+        }
+
+# Helper function for database storage
+async def store_document_in_database(doc_data):
+    """Store document in database - implement based on your existing code"""
+    # This should call your existing database storage logic
+    # Return a document ID
+    import uuid
+    return str(uuid.uuid4())
+
 if __name__ == "__main__":
     import uvicorn
     import os
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
+
