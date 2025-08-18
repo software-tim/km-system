@@ -148,12 +148,13 @@ async def upload_orchestration(request: Request):
     """Orchestrate document upload across services"""
     try:
         body = await request.json()
+        # Ensure UTF-8 encoding for all text fields
         form_data = {
-            'title': body.get('title', ''),
-            'content': body.get('content', ''),
-            'classification': body.get('classification', ''),
-            'entities': body.get('entities', ''),
-            'metadata': body.get('metadata', '{}')
+            'title': str(body.get('title', '')).encode('utf-8').decode('utf-8'),
+            'content': str(body.get('content', '')).encode('utf-8').decode('utf-8'),
+            'classification': str(body.get('classification', '')).encode('utf-8').decode('utf-8'),
+            'entities': str(body.get('entities', '')).encode('utf-8').decode('utf-8'),
+            'metadata': str(body.get('metadata', '{}')).encode('utf-8').decode('utf-8')
         }
         
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -162,8 +163,18 @@ async def upload_orchestration(request: Request):
                 data=form_data
             )
             return response.json()
+    except UnicodeDecodeError as e:
+        return {
+            "status": "error",
+            "message": f"Text encoding error: {str(e)}",
+            "suggestion": "Please ensure your document contains valid UTF-8 text"
+        }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return {
+            "status": "error", 
+            "message": f"Upload failed: {str(e)}",
+            "timestamp": datetime.utcnow().isoformat()
+        }
 
 @app.post("/api/search") 
 async def search_orchestration(request: Request):
@@ -195,3 +206,12 @@ async def analyze_orchestration(request: Request):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+@app.get("/diagnostics")
+async def diagnostics_dashboard():
+    """Comprehensive system diagnostics dashboard"""
+    try:
+        return FileResponse("public/diagnostics.html")
+    except FileNotFoundError:
+        return HTMLResponse("<h1>Diagnostics dashboard not found</h1>")
