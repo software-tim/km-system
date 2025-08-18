@@ -491,7 +491,7 @@
                     }
                 };
                 
-                const response = await fetch('https://km-mcp-sql-docs.azurewebsites.net/tools/store-document', {
+                const response = await fetch('/tools/store-document', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
@@ -518,7 +518,7 @@
                     max_results: 3
                 };
                 
-                const response = await fetch('https://km-mcp-sql-docs.azurewebsites.net/tools/search-documents', {
+                const response = await fetch('/tools/search-documents', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
@@ -540,7 +540,7 @@
             
             try {
                 // FIX: Use /tools/database-stats instead of /stats
-                const response = await fetch('https://km-mcp-sql-docs.azurewebsites.net/tools/database-stats');
+                const response = await fetch('/api/stats');
                 const data = await response.json();
                 resultDiv.textContent = JSON.stringify(data, null, 2);
                 markTestResult(resultId, response.ok ? 'working' : 'broken');
@@ -553,7 +553,7 @@
             resultDiv.textContent = 'Testing search service...';
             
             try {
-                const response = await fetch('https://km-mcp-search.azurewebsites.net/health');
+                const response = await fetch('/api/search-test');
                 const data = await response.json();
                 resultDiv.textContent = JSON.stringify(data, null, 2);
                 markTestResult(resultId, response.ok ? 'working' : 'broken');
@@ -569,7 +569,7 @@
             resultDiv.textContent = 'Testing LLM health...';
             
             try {
-                const response = await fetch('https://km-mcp-llm.azurewebsites.net/health');
+                const response = await fetch('/api/docs-health');
                 const data = await response.json();
                 resultDiv.textContent = JSON.stringify(data, null, 2);
                 markTestResult(resultId, response.ok ? 'working' : 'broken');
@@ -606,7 +606,7 @@
             
             try {
                 // This would test the RAG functionality if available
-                const response = await fetch('https://km-mcp-llm.azurewebsites.net/rag', {
+                const response = await fetch('/api/analyze', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ query: 'test query', documents: [] })
@@ -626,7 +626,7 @@
             resultDiv.textContent = 'Testing GraphRAG health...';
             
             try {
-                const response = await fetch('https://km-mcp-graphrag.azurewebsites.net/health');
+                const response = await fetch('/debug-cors');
                 const data = await response.json();
                 resultDiv.textContent = JSON.stringify(data, null, 2);
                 markTestResult(resultId, response.ok ? 'working' : 'broken');
@@ -642,7 +642,7 @@
             resultDiv.textContent = 'Testing build graph...';
             
             try {
-                const response = await fetch('https://km-mcp-graphrag.azurewebsites.net/build-graph', {
+                const response = await fetch('/service-diagnostics', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ source: 'test_documents' })
@@ -662,7 +662,7 @@
             resultDiv.textContent = 'Testing relationships...';
             
             try {
-                const response = await fetch('https://km-mcp-graphrag.azurewebsites.net/relationships', {
+                const response = await fetch('/proxy/docs-health', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ entity: 'test' })
@@ -760,6 +760,7 @@
     </script>
 </body>
 </html>
+
 
 
 
