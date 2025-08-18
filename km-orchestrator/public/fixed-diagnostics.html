@@ -1,0 +1,401 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KM Orchestrator - Fixed Diagnostics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .success-banner {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .test-all {
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .test-all:hover {
+            background: #7c3aed;
+        }
+
+        .diagnostic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .diagnostic-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .diagnostic-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .test-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px 5px 5px 0;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+        }
+
+        .test-button:hover {
+            background: #5a67d8;
+        }
+
+        .test-button.working {
+            background: #10b981;
+        }
+
+        .test-button.broken {
+            background: #ef4444;
+        }
+
+        .endpoint-test {
+            margin-bottom: 15px;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .endpoint-path {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .test-response {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .summary-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .summary-stat {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+
+        .summary-stat .number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .summary-stat .number.working { color: #10b981; }
+        .summary-stat .number.broken { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Fixed KM System Diagnostics</h1>
+            <p>CORS-aware testing with server-side proxy calls</p>
+        </div>
+
+        <div class="success-banner">
+            <h3>✅ CORS Issue Fixed!</h3>
+            <p>Orchestrator now uses server-side calls to bypass CORS restrictions</p>
+        </div>
+
+        <button class="test-all" onclick="runAllTests()">🔄 Run All Tests</button>
+
+        <div class="summary-section" id="summary" style="display: none;">
+            <h2>📊 Test Results Summary</h2>
+            <div class="summary-grid">
+                <div class="summary-stat">
+                    <div class="number working" id="workingCount">0</div>
+                    <div class="label">Working</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="number broken" id="brokenCount">0</div>
+                    <div class="label">Broken</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="number" id="totalCount">0</div>
+                    <div class="label">Total Tests</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="diagnostic-grid">
+            <!-- Core Orchestrator Functions -->
+            <div class="diagnostic-card">
+                <h3>🎯 Core Orchestrator Functions</h3>
+                <div class="endpoint-test">
+                    <div class="endpoint-path">GET /health</div>
+                    <button class="test-button" onclick="testEndpoint('/health', 'health-result')">Test Health</button>
+                    <div class="test-response" id="health-result">Not tested</div>
+                </div>
+                <div class="endpoint-test">
+                    <div class="endpoint-path">GET /services/status</div>
+                    <button class="test-button" onclick="testEndpoint('/services/status', 'services-result')">Test Services Status</button>
+                    <div class="test-response" id="services-result">Not tested</div>
+                </div>
+                <div class="endpoint-test">
+                    <div class="endpoint-path">POST /api/chat</div>
+                    <button class="test-button" onclick="testChat('chat-result')">Test Chat</button>
+                    <div class="test-response" id="chat-result">Not tested</div>
+                </div>
+            </div>
+
+            <!-- Document Service (via proxy) -->
+            <div class="diagnostic-card">
+                <h3>📄 Document Service (Server-side)</h3>
+                <div class="endpoint-test">
+                    <div class="endpoint-path">Proxy: /proxy/docs-health</div>
+                    <button class="test-button" onclick="testEndpoint('/proxy/docs-health', 'docs-health-result')">Test Document Health</button>
+                    <div class="test-response" id="docs-health-result">Not tested</div>
+                </div>
+                <div class="endpoint-test">
+                    <div class="endpoint-path">Proxy: /proxy/docs-stats</div>
+                    <button class="test-button" onclick="testEndpoint('/proxy/docs-stats', 'docs-stats-result')">Test Document Stats</button>
+                    <div class="test-response" id="docs-stats-result">Not tested</div>
+                </div>
+                <div class="endpoint-test">
+                    <div class="endpoint-path">POST /api/search</div>
+                    <button class="test-button" onclick="testSearch('search-result')">Test Document Search</button>
+                    <div class="test-response" id="search-result">Not tested</div>
+                </div>
+            </div>
+
+            <!-- Document Upload -->
+            <div class="diagnostic-card">
+                <h3>📤 Document Upload</h3>
+                <div class="endpoint-test">
+                    <div class="endpoint-path">POST /api/upload</div>
+                    <button class="test-button" onclick="testUpload('upload-result')">Test Upload</button>
+                    <div class="test-response" id="upload-result">Not tested</div>
+                </div>
+            </div>
+
+            <!-- Service Diagnostics -->
+            <div class="diagnostic-card">
+                <h3>🔍 Service Diagnostics</h3>
+                <div class="endpoint-test">
+                    <div class="endpoint-path">GET /service-diagnostics</div>
+                    <button class="test-button" onclick="testEndpoint('/service-diagnostics', 'diagnostics-result')">Test Diagnostics</button>
+                    <div class="test-response" id="diagnostics-result">Not tested</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = {};
+
+        // Test generic endpoints
+        async function testEndpoint(endpoint, resultId) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch(endpoint);
+                const data = await response.json();
+                resultDiv.textContent = `Status: ${response.status}\n${JSON.stringify(data, null, 2)}`;
+                markResult(resultId, response.ok ? 'working' : 'broken');
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+                markResult(resultId, 'broken');
+            }
+        }
+
+        // Test chat function
+        async function testChat(resultId) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.textContent = 'Testing chat...';
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: 'test artificial intelligence' })
+                });
+                const data = await response.json();
+                resultDiv.textContent = `Status: ${response.status}\n${JSON.stringify(data, null, 2)}`;
+                markResult(resultId, response.ok ? 'working' : 'broken');
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+                markResult(resultId, 'broken');
+            }
+        }
+
+        // Test search function
+        async function testSearch(resultId) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.textContent = 'Testing search...';
+            
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: 'artificial intelligence', limit: 3 })
+                });
+                const data = await response.json();
+                resultDiv.textContent = `Status: ${response.status}\n${JSON.stringify(data, null, 2)}`;
+                markResult(resultId, response.ok ? 'working' : 'broken');
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+                markResult(resultId, 'broken');
+            }
+        }
+
+        // Test upload function
+        async function testUpload(resultId) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.textContent = 'Testing upload...';
+            
+            try {
+                const testDoc = {
+                    title: 'CORS Test Document',
+                    content: 'This is a test document to verify CORS fix is working.',
+                    classification: 'Test',
+                    entities: 'CORS, test, orchestrator',
+                    metadata: '{"source": "cors_test", "timestamp": "' + new Date().toISOString() + '"}'
+                };
+                
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testDoc)
+                });
+                const data = await response.json();
+                resultDiv.textContent = `Status: ${response.status}\n${JSON.stringify(data, null, 2)}`;
+                markResult(resultId, response.ok ? 'working' : 'broken');
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+                markResult(resultId, 'broken');
+            }
+        }
+
+        // Mark test result
+        function markResult(testId, status) {
+            testResults[testId] = status;
+            const button = document.querySelector(`button[onclick*="${testId}"]`);
+            if (button) {
+                button.className = `test-button ${status}`;
+            }
+            updateSummary();
+        }
+
+        // Update summary
+        function updateSummary() {
+            const working = Object.values(testResults).filter(r => r === 'working').length;
+            const broken = Object.values(testResults).filter(r => r === 'broken').length;
+            const total = Object.values(testResults).length;
+
+            if (total > 0) {
+                document.getElementById('summary').style.display = 'block';
+                document.getElementById('workingCount').textContent = working;
+                document.getElementById('brokenCount').textContent = broken;
+                document.getElementById('totalCount').textContent = total;
+            }
+        }
+
+        // Run all tests
+        async function runAllTests() {
+            const tests = [
+                () => testEndpoint('/health', 'health-result'),
+                () => testEndpoint('/services/status', 'services-result'),
+                () => testChat('chat-result'),
+                () => testEndpoint('/proxy/docs-health', 'docs-health-result'),
+                () => testEndpoint('/proxy/docs-stats', 'docs-stats-result'),
+                () => testSearch('search-result'),
+                () => testUpload('upload-result'),
+                () => testEndpoint('/service-diagnostics', 'diagnostics-result')
+            ];
+
+            for (let i = 0; i < tests.length; i++) {
+                tests[i]();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+
+        // Auto-test health on load
+        window.addEventListener('load', function() {
+            testEndpoint('/health', 'health-result');
+        });
+    </script>
+</body>
+</html>
