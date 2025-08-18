@@ -491,7 +491,7 @@
                     }
                 };
                 
-                const response = await fetch('/tools/store-document', {
+                const response = await fetch('/api/upload', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
@@ -540,7 +540,7 @@
             
             try {
                 // FIX: Use /tools/database-stats instead of /stats
-                const response = await fetch('/api/stats');
+                const response = await fetch('/proxy/docs-stats');
                 const data = await response.json();
                 resultDiv.textContent = JSON.stringify(data, null, 2);
                 markTestResult(resultId, response.ok ? 'working' : 'broken');
@@ -626,7 +626,7 @@
             resultDiv.textContent = 'Testing GraphRAG health...';
             
             try {
-                const response = await fetch('/debug-cors');
+                const response = await fetch('/service-diagnostics');
                 const data = await response.json();
                 resultDiv.textContent = JSON.stringify(data, null, 2);
                 markTestResult(resultId, response.ok ? 'working' : 'broken');
@@ -760,6 +760,7 @@
     </script>
 </body>
 </html>
+
 
 
 
