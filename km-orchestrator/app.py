@@ -580,11 +580,11 @@ async def get_system_stats():
 
 @app.post("/api/upload")
 async def upload_document(request: Request):
-    """Upload document via orchestrator - FIXED FORMAT"""
+    """Upload document via orchestrator"""
     try:
         data = await request.json()
         
-        # Use the CORRECT format that km-mcp-sql-docs expects
+        # Prepare document for km-mcp-sql-docs
         doc_payload = {
             "title": data.get("title", "Untitled Document"),
             "content": data.get("content", ""),
@@ -593,16 +593,15 @@ async def upload_document(request: Request):
                 "source": "orchestrator_upload",
                 "classification": data.get("classification", "unclassified"),
                 "entities": data.get("entities", ""),
-                "created_by": "orchestrator",
-                "original_metadata": str(data.get("metadata", "{}"))
+                "created_by": "orchestrator"
             }
         }
         
+        # Send to km-mcp-sql-docs
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
                 f"{SERVICES['km-mcp-sql-docs']}/tools/store-document",
-                json=doc_payload,
-                headers={"Content-Type": "application/json"}
+                json=doc_payload
             )
             
             if response.status_code == 200:
@@ -611,25 +610,21 @@ async def upload_document(request: Request):
                     "success": True,
                     "message": "Document uploaded successfully",
                     "document_id": result.get("document_id"),
-                    "status": "success"
+                    "status": "success"  # FIX: Return success, not error
                 }
             else:
                 return {
                     "success": False,
                     "message": f"Upload failed: {response.text}",
-                    "status": "error",
-                    "details": response.text
+                    "status": "error"
                 }
                 
     except Exception as e:
-        logger.error(f"Upload error: {e}")
         return {
             "success": False,
             "message": f"Upload error: {str(e)}",
             "status": "error"
-        }
-
-@app.post("/api/search")
+        }@app.post("/api/search")
 async def search_documents(request: Request):
     """Search documents via orchestrator - FIXED FORMAT"""
     try:
@@ -726,6 +721,7 @@ async def debug_cors_page():
         return FileResponse("public/debug-cors.html")
     except FileNotFoundError:
         return HTMLResponse("<h1>Debug page not found</h1>")
+
 
 
 
