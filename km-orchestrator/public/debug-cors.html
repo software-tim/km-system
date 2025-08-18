@@ -1,0 +1,67 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>CORS Debug - Safe Addition</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+        .test-button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .test-button:hover { background: #0056b3; }
+        .results { margin-top: 20px; padding: 15px; background: white; border-radius: 5px; font-family: monospace; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Safe CORS Debug (Won't Break Anything)</h1>
+    <p>This is just a diagnostic addition to test deployment and CORS issues.</p>
+    
+    <button class="test-button" onclick="testDeployment()">1. Test If Deployment Updated</button>
+    <button class="test-button" onclick="testServerSide()">2. Test Server-Side Call</button>
+    <button class="test-button" onclick="testExistingChat()">3. Test Existing Chat</button>
+    
+    <div id="results" class="results">Click buttons above to test...</div>
+
+    <script>
+        const results = document.getElementById('results');
+
+        async function testDeployment() {
+            results.textContent = 'Testing if deployment updated...\n';
+            try {
+                const response = await fetch('/debug-cors');
+                const data = await response.json();
+                results.textContent += `✅ DEPLOYMENT WORKING:\n${JSON.stringify(data, null, 2)}\n`;
+            } catch (error) {
+                results.textContent += `❌ DEPLOYMENT ISSUE: ${error.message}\n`;
+            }
+        }
+
+        async function testServerSide() {
+            results.textContent += '\nTesting server-side call to km-mcp-sql-docs...\n';
+            try {
+                const response = await fetch('/debug-cors');
+                const data = await response.json();
+                if (data.server_side_call_to_docs.success) {
+                    results.textContent += `✅ SERVER-SIDE SUCCESS: Orchestrator CAN reach km-mcp-sql-docs\n`;
+                } else {
+                    results.textContent += `❌ SERVER-SIDE FAILED: ${JSON.stringify(data.server_side_call_to_docs, null, 2)}\n`;
+                }
+            } catch (error) {
+                results.textContent += `❌ SERVER-SIDE ERROR: ${error.message}\n`;
+            }
+        }
+
+        async function testExistingChat() {
+            results.textContent += '\nTesting existing chat function...\n';
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: 'test artificial intelligence' })
+                });
+                const data = await response.json();
+                results.textContent += `CHAT RESULT:\n${JSON.stringify(data, null, 2)}\n`;
+            } catch (error) {
+                results.textContent += `❌ CHAT ERROR: ${error.message}\n`;
+            }
+        }
+    </script>
+</body>
+</html>
