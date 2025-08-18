@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -264,13 +264,13 @@
                     <div class="test-response" id="upload-result">Click test to check...</div>
                 </div>
                 <div class="endpoint-test">
-                    <div class="endpoint-path">POST /tools/store-document</div>
+                    <div class="endpoint-path">km-mcp-sql-docs /tools/store-document</div>
                     <button class="test-button" onclick="testDirectDocumentStore('direct-store-result')">Test Direct Store</button>
                     <div class="test-response" id="direct-store-result">Click test to check...</div>
                 </div>
                 <div class="endpoint-test">
-                    <div class="endpoint-path">GET /api/stats</div>
-                    <button class="test-button" onclick="testEndpoint('/api/stats', 'doc-stats-result')">Test Document Stats</button>
+                    <div class="endpoint-path">km-mcp-sql-docs /stats</div>
+                    <button class="test-button" onclick="testDocumentStats('doc-stats-result')">Test Document Stats</button>
                     <div class="test-response" id="doc-stats-result">Click test to check...</div>
                 </div>
             </div>
@@ -284,13 +284,13 @@
                     <div class="test-response" id="search-result">Click test to check...</div>
                 </div>
                 <div class="endpoint-test">
-                    <div class="endpoint-path">POST /tools/search-documents</div>
+                    <div class="endpoint-path">km-mcp-sql-docs /tools/search-documents</div>
                     <button class="test-button" onclick="testDirectSearch('direct-search-result')">Test Direct Search</button>
                     <div class="test-response" id="direct-search-result">Click test to check...</div>
                 </div>
                 <div class="endpoint-test">
-                    <div class="endpoint-path">GET /api/search-test</div>
-                    <button class="test-button" onclick="testEndpoint('/api/search-test', 'search-service-result')">Test Search Service</button>
+                    <div class="endpoint-path">km-mcp-search service</div>
+                    <button class="test-button" onclick="testSearchService('search-service-result')">Test Search Service</button>
                     <div class="test-response" id="search-service-result">Click test to check...</div>
                 </div>
             </div>
@@ -299,8 +299,8 @@
             <div class="diagnostic-card">
                 <h3>🤖 AI & LLM Functions</h3>
                 <div class="endpoint-test">
-                    <div class="endpoint-path">GET /api/docs-health</div>
-                    <button class="test-button" onclick="testEndpoint('/api/docs-health', 'llm-health-result')">Test LLM Health</button>
+                    <div class="endpoint-path">km-mcp-llm /health</div>
+                    <button class="test-button" onclick="testLLMHealth('llm-health-result')">Test LLM Health</button>
                     <div class="test-response" id="llm-health-result">Click test to check...</div>
                 </div>
                 <div class="endpoint-test">
@@ -309,8 +309,8 @@
                     <div class="test-response" id="analyze-result">Click test to check...</div>
                 </div>
                 <div class="endpoint-test">
-                    <div class="endpoint-path">GET /api/upload-test</div>
-                    <button class="test-button" onclick="testEndpoint('/api/upload-test', 'rag-result')">Test Upload Service</button>
+                    <div class="endpoint-path">km-mcp-llm RAG functionality</div>
+                    <button class="test-button" onclick="testRAG('rag-result')">Test RAG Pipeline</button>
                     <div class="test-response" id="rag-result">Click test to check...</div>
                 </div>
             </div>
@@ -319,18 +319,18 @@
             <div class="diagnostic-card">
                 <h3>🌐 Knowledge Graphs</h3>
                 <div class="endpoint-test">
-                    <div class="endpoint-path">GET /debug-cors</div>
-                    <button class="test-button" onclick="testEndpoint('/debug-cors', 'graphrag-health-result')">Test Debug CORS</button>
+                    <div class="endpoint-path">km-mcp-graphrag /health</div>
+                    <button class="test-button" onclick="testGraphRAGHealth('graphrag-health-result')">Test GraphRAG Health</button>
                     <div class="test-response" id="graphrag-health-result">Click test to check...</div>
                 </div>
                 <div class="endpoint-test">
-                    <div class="endpoint-path">GET /service-diagnostics</div>
-                    <button class="test-button" onclick="testEndpoint('/service-diagnostics', 'build-graph-result')">Test Service Diagnostics</button>
+                    <div class="endpoint-path">km-mcp-graphrag /build-graph</div>
+                    <button class="test-button" onclick="testBuildGraph('build-graph-result')">Test Build Graph</button>
                     <div class="test-response" id="build-graph-result">Click test to check...</div>
                 </div>
                 <div class="endpoint-test">
-                    <div class="endpoint-path">GET /proxy/docs-health</div>
-                    <button class="test-button" onclick="testEndpoint('/proxy/docs-health', 'relationships-result')">Test Proxy Health</button>
+                    <div class="endpoint-path">km-mcp-graphrag /relationships</div>
+                    <button class="test-button" onclick="testRelationships('relationships-result')">Test Relationships</button>
                     <div class="test-response" id="relationships-result">Click test to check...</div>
                 </div>
             </div>
@@ -341,36 +341,36 @@
                 <div class="service-health">
                     <div>
                         <div class="service-name">km-mcp-sql-docs</div>
-                        <div class="service-url">Via orchestrator proxy</div>
+                        <div class="service-url">https://km-mcp-sql-docs.azurewebsites.net</div>
                     </div>
-                    <button class="test-button" onclick="testEndpoint('/proxy/docs-health', 'docs-connectivity')">Test</button>
+                    <button class="test-button" onclick="testServiceConnectivity('km-mcp-sql-docs', 'docs-connectivity')">Test</button>
                 </div>
                 <div class="test-response" id="docs-connectivity">Not tested</div>
 
                 <div class="service-health">
                     <div>
                         <div class="service-name">km-mcp-search</div>
-                        <div class="service-url">Via orchestrator proxy</div>
+                        <div class="service-url">https://km-mcp-search.azurewebsites.net</div>
                     </div>
-                    <button class="test-button" onclick="testEndpoint('/api/search-test', 'search-connectivity')">Test</button>
+                    <button class="test-button" onclick="testServiceConnectivity('km-mcp-search', 'search-connectivity')">Test</button>
                 </div>
                 <div class="test-response" id="search-connectivity">Not tested</div>
 
                 <div class="service-health">
                     <div>
                         <div class="service-name">km-mcp-llm</div>
-                        <div class="service-url">Via orchestrator proxy</div>
+                        <div class="service-url">https://km-mcp-llm.azurewebsites.net</div>
                     </div>
-                    <button class="test-button" onclick="testEndpoint('/api/docs-health', 'llm-connectivity')">Test</button>
+                    <button class="test-button" onclick="testServiceConnectivity('km-mcp-llm', 'llm-connectivity')">Test</button>
                 </div>
                 <div class="test-response" id="llm-connectivity">Not tested</div>
 
                 <div class="service-health">
                     <div>
                         <div class="service-name">km-mcp-graphrag</div>
-                        <div class="service-url">Via orchestrator proxy</div>
+                        <div class="service-url">https://km-mcp-graphrag.azurewebsites.net</div>
                     </div>
-                    <button class="test-button" onclick="testEndpoint('/api/simple-test', 'graphrag-connectivity')">Test</button>
+                    <button class="test-button" onclick="testServiceConnectivity('km-mcp-graphrag', 'graphrag-connectivity')">Test</button>
                 </div>
                 <div class="test-response" id="graphrag-connectivity">Not tested</div>
             </div>
@@ -380,7 +380,7 @@
     <script>
         let testResults = {};
 
-        // FIXED: Generic endpoint tester - only calls orchestrator endpoints
+        // Generic endpoint tester
         async function testEndpoint(endpoint, resultId) {
             const resultDiv = document.getElementById(resultId);
             resultDiv.textContent = 'Testing...';
@@ -389,7 +389,7 @@
                 const response = await fetch(endpoint);
                 const data = await response.json();
                 resultDiv.textContent = JSON.stringify(data, null, 2);
-                markTestResult(resultId, response.ok ? 'working' : 'broken');
+                markTestResult(resultId, 'working');
             } catch (error) {
                 resultDiv.textContent = `Error: ${error.message}`;
                 markTestResult(resultId, 'broken');
@@ -409,24 +409,27 @@
                 });
                 const data = await response.json();
                 resultDiv.textContent = JSON.stringify(data, null, 2);
-                markTestResult(resultId, data.status !== 'error' ? 'working' : 'broken');
+                markTestResult(resultId, data.status === 'error' ? 'broken' : 'working');
             } catch (error) {
                 resultDiv.textContent = `Error: ${error.message}`;
                 markTestResult(resultId, 'broken');
             }
         }
 
-        // FIXED: Test document upload - calls orchestrator /api/upload
+        // Test document upload
+                // Test document upload - FIXED JSON HANDLING
         async function testDocumentUpload(resultId) {
             const resultDiv = document.getElementById(resultId);
             resultDiv.textContent = 'Testing document upload...';
             
             try {
+                // Create proper JSON object
                 const testDoc = {
                     title: 'Diagnostic Test Document',
                     content: 'This is a test document for diagnostic purposes.',
                     classification: 'Test',
-                    entities: 'diagnostics, test'
+                    entities: 'diagnostics, test',
+                    metadata: '{"source": "diagnostics"}'
                 };
                 
                 const response = await fetch('/api/upload', {
@@ -445,9 +448,7 @@
                 resultDiv.textContent = `Error: ${error.message}`;
                 markTestResult(resultId, 'broken');
             }
-        }
-
-        // FIXED: Test search functionality - calls orchestrator /api/search
+        }        // Test search functionality - FIXED JSON HANDLING
         async function testSearch(resultId) {
             const resultDiv = document.getElementById(resultId);
             resultDiv.textContent = 'Testing search...';
@@ -474,21 +475,23 @@
                 resultDiv.textContent = `Error: ${error.message}`;
                 markTestResult(resultId, 'broken');
             }
-        }
-
-        // FIXED: Test direct document store - calls orchestrator /tools/store-document
-        async function testDirectDocumentStore(resultId) {
+        }async function testDirectDocumentStore(resultId) {
             const resultDiv = document.getElementById(resultId);
             resultDiv.textContent = 'Testing direct document store...';
             
             try {
+                // Create proper JSON object (not FormData)
                 const testDoc = {
                     title: 'Direct Test Document',
                     content: 'This is a direct test to the document service.',
-                    classification: 'Test'
+                    file_type: 'text',
+                    metadata: {
+                        source: 'dashboard_test',
+                        classification: 'Test'
+                    }
                 };
                 
-                const response = await fetch('/tools/store-document', {
+                const response = await fetch('https://km-mcp-sql-docs.azurewebsites.net/tools/store-document', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
@@ -499,14 +502,12 @@
                 
                 const data = await response.json();
                 resultDiv.textContent = JSON.stringify(data, null, 2);
-                markTestResult(resultId, response.ok ? 'working' : 'broken');
+                markTestResult(resultId, response.ok && data.success ? 'working' : 'broken');
             } catch (error) {
                 resultDiv.textContent = `Error: ${error.message}`;
                 markTestResult(resultId, 'broken');
             }
-        }
-
-        // FIXED: Test direct search - calls orchestrator /tools/search-documents
+        }        // Test direct search - FIXED JSON HANDLING
         async function testDirectSearch(resultId) {
             const resultDiv = document.getElementById(resultId);
             resultDiv.textContent = 'Testing direct search...';
@@ -514,10 +515,10 @@
             try {
                 const searchData = {
                     query: 'test',
-                    limit: 3
+                    max_results: 3
                 };
                 
-                const response = await fetch('/tools/search-documents', {
+                const response = await fetch('https://km-mcp-sql-docs.azurewebsites.net/tools/search-documents', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
@@ -526,6 +527,49 @@
                     body: JSON.stringify(searchData)
                 });
                 
+                const data = await response.json();
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+                markTestResult(resultId, response.ok ? 'working' : 'broken');
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+                markTestResult(resultId, 'broken');
+            }
+        }async function testDocumentStats(resultId) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.textContent = 'Testing document stats...';
+            
+            try {
+                // FIX: Use /tools/database-stats instead of /stats
+                const response = await fetch('https://km-mcp-sql-docs.azurewebsites.net/tools/database-stats');
+                const data = await response.json();
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+                markTestResult(resultId, response.ok ? 'working' : 'broken');
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+                markTestResult(resultId, 'broken');
+            }
+        }async function testSearchService(resultId) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.textContent = 'Testing search service...';
+            
+            try {
+                const response = await fetch('https://km-mcp-search.azurewebsites.net/health');
+                const data = await response.json();
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+                markTestResult(resultId, response.ok ? 'working' : 'broken');
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+                markTestResult(resultId, 'broken');
+            }
+        }
+
+        // Test LLM health
+        async function testLLMHealth(resultId) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.textContent = 'Testing LLM health...';
+            
+            try {
+                const response = await fetch('https://km-mcp-llm.azurewebsites.net/health');
                 const data = await response.json();
                 resultDiv.textContent = JSON.stringify(data, null, 2);
                 markTestResult(resultId, response.ok ? 'working' : 'broken');
@@ -544,8 +588,108 @@
                 const response = await fetch('/api/analyze', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content: 'diagnostic test content' })
+                    body: JSON.stringify({ type: 'test', content: 'diagnostic test' })
                 });
+                const data = await response.json();
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+                markTestResult(resultId, response.ok ? 'working' : 'broken');
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+                markTestResult(resultId, 'broken');
+            }
+        }
+
+        // Test RAG pipeline
+        async function testRAG(resultId) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.textContent = 'Testing RAG pipeline...';
+            
+            try {
+                // This would test the RAG functionality if available
+                const response = await fetch('https://km-mcp-llm.azurewebsites.net/rag', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: 'test query', documents: [] })
+                });
+                const data = await response.json();
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+                markTestResult(resultId, response.ok ? 'working' : 'broken');
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+                markTestResult(resultId, 'broken');
+            }
+        }
+
+        // Test GraphRAG health
+        async function testGraphRAGHealth(resultId) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.textContent = 'Testing GraphRAG health...';
+            
+            try {
+                const response = await fetch('https://km-mcp-graphrag.azurewebsites.net/health');
+                const data = await response.json();
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+                markTestResult(resultId, response.ok ? 'working' : 'broken');
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+                markTestResult(resultId, 'broken');
+            }
+        }
+
+        // Test build graph
+        async function testBuildGraph(resultId) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.textContent = 'Testing build graph...';
+            
+            try {
+                const response = await fetch('https://km-mcp-graphrag.azurewebsites.net/build-graph', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ source: 'test_documents' })
+                });
+                const data = await response.json();
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+                markTestResult(resultId, response.ok ? 'working' : 'broken');
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+                markTestResult(resultId, 'broken');
+            }
+        }
+
+        // Test relationships
+        async function testRelationships(resultId) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.textContent = 'Testing relationships...';
+            
+            try {
+                const response = await fetch('https://km-mcp-graphrag.azurewebsites.net/relationships', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ entity: 'test' })
+                });
+                const data = await response.json();
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+                markTestResult(resultId, response.ok ? 'working' : 'broken');
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+                markTestResult(resultId, 'broken');
+            }
+        }
+
+        // Test service connectivity
+        async function testServiceConnectivity(serviceName, resultId) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.textContent = 'Testing connectivity...';
+            
+            const serviceUrls = {
+                'km-mcp-sql-docs': 'https://km-mcp-sql-docs.azurewebsites.net',
+                'km-mcp-search': 'https://km-mcp-search.azurewebsites.net',
+                'km-mcp-llm': 'https://km-mcp-llm.azurewebsites.net',
+                'km-mcp-graphrag': 'https://km-mcp-graphrag.azurewebsites.net'
+            };
+            
+            try {
+                const response = await fetch(`${serviceUrls[serviceName]}/health`);
                 const data = await response.json();
                 resultDiv.textContent = JSON.stringify(data, null, 2);
                 markTestResult(resultId, response.ok ? 'working' : 'broken');
@@ -591,20 +735,20 @@
                 () => testChat('orchestrator-chat-result'),
                 () => testDocumentUpload('upload-result'),
                 () => testDirectDocumentStore('direct-store-result'),
-                () => testEndpoint('/api/stats', 'doc-stats-result'),
+                () => testDocumentStats('doc-stats-result'),
                 () => testSearch('search-result'),
                 () => testDirectSearch('direct-search-result'),
-                () => testEndpoint('/api/search-test', 'search-service-result'),
-                () => testEndpoint('/api/docs-health', 'llm-health-result'),
+                () => testSearchService('search-service-result'),
+                () => testLLMHealth('llm-health-result'),
                 () => testAnalyze('analyze-result'),
-                () => testEndpoint('/api/upload-test', 'rag-result'),
-                () => testEndpoint('/debug-cors', 'graphrag-health-result'),
-                () => testEndpoint('/service-diagnostics', 'build-graph-result'),
-                () => testEndpoint('/proxy/docs-health', 'relationships-result'),
-                () => testEndpoint('/proxy/docs-health', 'docs-connectivity'),
-                () => testEndpoint('/api/search-test', 'search-connectivity'),
-                () => testEndpoint('/api/docs-health', 'llm-connectivity'),
-                () => testEndpoint('/api/simple-test', 'graphrag-connectivity')
+                () => testRAG('rag-result'),
+                () => testGraphRAGHealth('graphrag-health-result'),
+                () => testBuildGraph('build-graph-result'),
+                () => testRelationships('relationships-result'),
+                () => testServiceConnectivity('km-mcp-sql-docs', 'docs-connectivity'),
+                () => testServiceConnectivity('km-mcp-search', 'search-connectivity'),
+                () => testServiceConnectivity('km-mcp-llm', 'llm-connectivity'),
+                () => testServiceConnectivity('km-mcp-graphrag', 'graphrag-connectivity')
             ];
 
             // Run tests with delays to avoid overwhelming services
@@ -616,3 +760,6 @@
     </script>
 </body>
 </html>
+
+
+
