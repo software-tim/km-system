@@ -194,7 +194,7 @@ async def chat_orchestration(request: Request):
             "timestamp": datetime.utcnow().isoformat()
         }, status_code=500)
 
-@app.post("/api/upload")
+@app.post("/tools/store-document")
 async def upload_orchestration(request: Request):
     """Server-side document upload - bypasses CORS"""
     try:
@@ -232,7 +232,7 @@ async def upload_orchestration(request: Request):
             "timestamp": datetime.utcnow().isoformat()
         }, status_code=500)
 
-@app.post("/api/search") 
+@app.post("/tools/search-documents") 
 async def search_orchestration(request: Request):
     """Server-side search - bypasses CORS"""
     try:
@@ -451,3 +451,4 @@ async def debug_cors_page():
         return FileResponse("public/debug-cors.html")
     except FileNotFoundError:
         return HTMLResponse("<h1>Debug page not found</h1>")
+
