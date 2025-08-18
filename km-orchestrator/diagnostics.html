@@ -417,11 +417,13 @@
         }
 
         // Test document upload
+                // Test document upload - FIXED JSON HANDLING
         async function testDocumentUpload(resultId) {
             const resultDiv = document.getElementById(resultId);
             resultDiv.textContent = 'Testing document upload...';
             
             try {
+                // Create proper JSON object
                 const testDoc = {
                     title: 'Diagnostic Test Document',
                     content: 'This is a test document for diagnostic purposes.',
@@ -432,46 +434,53 @@
                 
                 const response = await fetch('/api/upload', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
                     body: JSON.stringify(testDoc)
                 });
+                
                 const data = await response.json();
                 resultDiv.textContent = JSON.stringify(data, null, 2);
-                markTestResult(resultId, data.status === 'error' ? 'broken' : 'working');
+                markTestResult(resultId, data.status === 'success' ? 'working' : 'broken');
             } catch (error) {
                 resultDiv.textContent = `Error: ${error.message}`;
                 markTestResult(resultId, 'broken');
             }
-        }
-
-        // Test search functionality
+        }        // Test search functionality - FIXED JSON HANDLING
         async function testSearch(resultId) {
             const resultDiv = document.getElementById(resultId);
             resultDiv.textContent = 'Testing search...';
             
             try {
+                const searchData = {
+                    query: 'test',
+                    limit: 3
+                };
+                
                 const response = await fetch('/api/search', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query: 'test', limit: 3 })
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(searchData)
                 });
+                
                 const data = await response.json();
                 resultDiv.textContent = JSON.stringify(data, null, 2);
-                markTestResult(resultId, response.ok ? 'working' : 'broken');
+                markTestResult(resultId, response.ok && data.status === 'success' ? 'working' : 'broken');
             } catch (error) {
                 resultDiv.textContent = `Error: ${error.message}`;
                 markTestResult(resultId, 'broken');
             }
-        }
-
-        // Test direct document store
-                // Test direct document store
-        async function testDirectDocumentStore(resultId) {
+        }async function testDirectDocumentStore(resultId) {
             const resultDiv = document.getElementById(resultId);
             resultDiv.textContent = 'Testing direct document store...';
             
             try {
-                // FIX: Use JSON instead of FormData
+                // Create proper JSON object (not FormData)
                 const testDoc = {
                     title: 'Direct Test Document',
                     content: 'This is a direct test to the document service.',
@@ -484,26 +493,40 @@
                 
                 const response = await fetch('https://km-mcp-sql-docs.azurewebsites.net/tools/store-document', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
                     body: JSON.stringify(testDoc)
                 });
+                
                 const data = await response.json();
                 resultDiv.textContent = JSON.stringify(data, null, 2);
-                markTestResult(resultId, response.ok ? 'working' : 'broken');
+                markTestResult(resultId, response.ok && data.success ? 'working' : 'broken');
             } catch (error) {
                 resultDiv.textContent = `Error: ${error.message}`;
                 markTestResult(resultId, 'broken');
             }
-        }async function testDirectSearch(resultId) {
+        }        // Test direct search - FIXED JSON HANDLING
+        async function testDirectSearch(resultId) {
             const resultDiv = document.getElementById(resultId);
             resultDiv.textContent = 'Testing direct search...';
             
             try {
+                const searchData = {
+                    query: 'test',
+                    max_results: 3
+                };
+                
                 const response = await fetch('https://km-mcp-sql-docs.azurewebsites.net/tools/search-documents', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query: 'test', limit: 3 })
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(searchData)
                 });
+                
                 const data = await response.json();
                 resultDiv.textContent = JSON.stringify(data, null, 2);
                 markTestResult(resultId, response.ok ? 'working' : 'broken');
@@ -511,11 +534,7 @@
                 resultDiv.textContent = `Error: ${error.message}`;
                 markTestResult(resultId, 'broken');
             }
-        }
-
-        // Test document stats
-                // Test document stats
-        async function testDocumentStats(resultId) {
+        }async function testDocumentStats(resultId) {
             const resultDiv = document.getElementById(resultId);
             resultDiv.textContent = 'Testing document stats...';
             
@@ -741,5 +760,6 @@
     </script>
 </body>
 </html>
+
 
 

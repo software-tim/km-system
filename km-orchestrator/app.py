@@ -580,11 +580,11 @@ async def get_system_stats():
 
 @app.post("/api/upload")
 async def upload_document(request: Request):
-    """Upload document via orchestrator"""
+    """Upload document via orchestrator - FIXED JSON HANDLING"""
     try:
         data = await request.json()
         
-        # Prepare document for km-mcp-sql-docs
+        # Create proper JSON payload for km-mcp-sql-docs
         doc_payload = {
             "title": data.get("title", "Untitled Document"),
             "content": data.get("content", ""),
@@ -597,11 +597,12 @@ async def upload_document(request: Request):
             }
         }
         
-        # Send to km-mcp-sql-docs
+        # Send properly formatted JSON to km-mcp-sql-docs
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
                 f"{SERVICES['km-mcp-sql-docs']}/tools/store-document",
-                json=doc_payload
+                json=doc_payload,  # Use json= parameter for proper JSON encoding
+                headers={"Content-Type": "application/json"}
             )
             
             if response.status_code == 200:
@@ -610,27 +611,29 @@ async def upload_document(request: Request):
                     "success": True,
                     "message": "Document uploaded successfully",
                     "document_id": result.get("document_id"),
-                    "status": "success"  # FIX: Return success, not error
+                    "status": "success"  # Return SUCCESS, not error
                 }
             else:
                 return {
                     "success": False,
                     "message": f"Upload failed: {response.text}",
-                    "status": "error"
+                    "status": "error",
+                    "debug_payload": doc_payload
                 }
                 
     except Exception as e:
+        logger.error(f"Upload error: {e}")
         return {
             "success": False,
             "message": f"Upload error: {str(e)}",
             "status": "error"
         }@app.post("/api/search")
 async def search_documents(request: Request):
-    """Search documents via orchestrator - FIXED FORMAT"""
+    """Search documents via orchestrator - FIXED JSON HANDLING"""
     try:
         data = await request.json()
         
-        # Use the CORRECT format that km-mcp-sql-docs expects
+        # Create proper JSON payload for km-mcp-sql-docs
         search_payload = {
             "query": data.get("query", ""),
             "max_results": data.get("limit", 10)
@@ -640,10 +643,11 @@ async def search_documents(request: Request):
         if data.get("classification"):
             search_payload["classification"] = data.get("classification")
         
+        # Send properly formatted JSON to km-mcp-sql-docs
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
                 f"{SERVICES['km-mcp-sql-docs']}/tools/search-documents",
-                json=search_payload,
+                json=search_payload,  # Use json= parameter for proper JSON encoding
                 headers={"Content-Type": "application/json"}
             )
             
@@ -671,13 +675,7 @@ async def search_documents(request: Request):
             "message": f"Search error: {str(e)}",
             "results": [],
             "status": "error"
-        }
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-
-@app.get("/fixed-diagnostics")
+        }@app.get("/fixed-diagnostics")
 async def fixed_diagnostics():
     """Fixed diagnostics with server-side proxy calls"""
     try:
@@ -721,6 +719,7 @@ async def debug_cors_page():
         return FileResponse("public/debug-cors.html")
     except FileNotFoundError:
         return HTMLResponse("<h1>Debug page not found</h1>")
+
 
 
 
