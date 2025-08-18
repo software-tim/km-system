@@ -409,101 +409,6 @@ async def detailed_service_diagnostics():
 # Added to fix 8 broken diagnostic tests
 # ========================================
 
-@app.post("/api/upload")
-async def upload_document(request: Request):
-    """Upload document via orchestrator - proxy to km-mcp-sql-docs"""
-    try:
-        data = await request.json()
-        
-        # Prepare the document for km-mcp-sql-docs format
-        doc_payload = {
-            "title": data.get("title", "Untitled Document"),
-            "content": data.get("content", ""),
-            "file_type": "text",
-            "metadata": {
-                "classification": data.get("classification", "unclassified"),
-                "entities": data.get("entities", ""),
-                "source": "orchestrator_upload",
-                "original_metadata": data.get("metadata", "{}")
-            }
-        }
-        
-        # Send to km-mcp-sql-docs
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
-                f"{SERVICES['km-mcp-sql-docs']}/tools/store-document",
-                json=doc_payload
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                return {
-                    "success": True,
-                    "message": "Document uploaded successfully",
-                    "document_id": result.get("document_id"),
-                    "status": "success"
-                }
-            else:
-                return {
-                    "success": False,
-                    "message": f"Upload failed: {response.text}",
-                    "status": "error"
-                }
-                
-    except Exception as e:
-        logger.error(f"Upload error: {e}")
-        return {
-            "success": False,
-            "message": f"Upload error: {str(e)}",
-            "status": "error"
-        }
-
-@app.post("/api/search")
-async def search_documents(request: Request):
-    """Search documents via orchestrator - proxy to km-mcp-sql-docs"""
-    try:
-        data = await request.json()
-        
-        # Prepare search payload
-        search_payload = {
-            "query": data.get("query", ""),
-            "max_results": data.get("limit", 10),
-            "classification": data.get("classification")
-        }
-        
-        # Send to km-mcp-sql-docs
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
-                f"{SERVICES['km-mcp-sql-docs']}/tools/search-documents",
-                json=search_payload
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                return {
-                    "success": True,
-                    "results": result.get("results", []),
-                    "total": len(result.get("results", [])),
-                    "query": data.get("query"),
-                    "status": "success"
-                }
-            else:
-                return {
-                    "success": False,
-                    "message": f"Search failed: {response.text}",
-                    "results": [],
-                    "status": "error"
-                }
-                
-    except Exception as e:
-        logger.error(f"Search error: {e}")
-        return {
-            "success": False,
-            "message": f"Search error: {str(e)}",
-            "results": [],
-            "status": "error"
-        }
-
 @app.post("/api/analyze")
 async def analyze_content(request: Request):
     """Analyze content via orchestrator - proxy to km-mcp-llm"""
@@ -672,6 +577,107 @@ async def get_system_stats():
     except Exception as e:
         return {"success": False, "error": str(e)}
 
+
+@app.post("/api/upload")
+async def upload_document(request: Request):
+    """Upload document via orchestrator - FIXED FORMAT"""
+    try:
+        data = await request.json()
+        
+        # Use the CORRECT format that km-mcp-sql-docs expects
+        doc_payload = {
+            "title": data.get("title", "Untitled Document"),
+            "content": data.get("content", ""),
+            "file_type": data.get("file_type", "text"),
+            "metadata": {
+                "source": "orchestrator_upload",
+                "classification": data.get("classification", "unclassified"),
+                "entities": data.get("entities", ""),
+                "created_by": "orchestrator",
+                "original_metadata": str(data.get("metadata", "{}"))
+            }
+        }
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{SERVICES['km-mcp-sql-docs']}/tools/store-document",
+                json=doc_payload,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                return {
+                    "success": True,
+                    "message": "Document uploaded successfully",
+                    "document_id": result.get("document_id"),
+                    "status": "success"
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": f"Upload failed: {response.text}",
+                    "status": "error",
+                    "details": response.text
+                }
+                
+    except Exception as e:
+        logger.error(f"Upload error: {e}")
+        return {
+            "success": False,
+            "message": f"Upload error: {str(e)}",
+            "status": "error"
+        }
+
+@app.post("/api/search")
+async def search_documents(request: Request):
+    """Search documents via orchestrator - FIXED FORMAT"""
+    try:
+        data = await request.json()
+        
+        # Use the CORRECT format that km-mcp-sql-docs expects
+        search_payload = {
+            "query": data.get("query", ""),
+            "max_results": data.get("limit", 10)
+        }
+        
+        # Add optional classification filter if provided
+        if data.get("classification"):
+            search_payload["classification"] = data.get("classification")
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{SERVICES['km-mcp-sql-docs']}/tools/search-documents",
+                json=search_payload,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                return {
+                    "success": True,
+                    "results": result.get("results", []),
+                    "total": len(result.get("results", [])),
+                    "query": data.get("query"),
+                    "status": "success"
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": f"Search failed: {response.text}",
+                    "results": [],
+                    "status": "error"
+                }
+                
+    except Exception as e:
+        logger.error(f"Search error: {e}")
+        return {
+            "success": False,
+            "message": f"Search error: {str(e)}",
+            "results": [],
+            "status": "error"
+        }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
@@ -720,5 +726,6 @@ async def debug_cors_page():
         return FileResponse("public/debug-cors.html")
     except FileNotFoundError:
         return HTMLResponse("<h1>Debug page not found</h1>")
+
 
 
