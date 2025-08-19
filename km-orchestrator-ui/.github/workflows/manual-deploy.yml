@@ -1,0 +1,127 @@
+﻿name: Manual Deploy
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  manual-build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Install Node.js
+        run: |
+          echo "Installing Node.js manually..."
+          curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+      
+      - name: Prepare workspace
+        run: |
+          echo "=== Workspace Debug ==="
+          pwd
+          ls -la
+          
+          # Check if we need to work in subdirectory
+          if [ -d "km-orchestrator-ui" ]; then
+            echo "Working in km-orchestrator-ui subdirectory"
+            cd km-orchestrator-ui
+            WORK_DIR="km-orchestrator-ui"
+          else
+            echo "Working in current directory"
+            WORK_DIR="."
+          fi
+          
+          echo "WORK_DIR=$WORK_DIR" >> $GITHUB_ENV
+          
+          cd "$WORK_DIR"
+          pwd
+          ls -la
+      
+      - name: Create project files
+        run: |
+          cd "$WORK_DIR"
+          
+          # Remove any existing files
+          rm -rf node_modules package.json package-lock.json .astro dist
+          
+          # Create package.json
+          cat > package.json << 'EOF'
+          {
+            "name": "km-orchestrator-ui",
+            "type": "module",
+            "version": "1.0.0",
+            "scripts": {
+              "dev": "astro dev",
+              "build": "astro build",
+              "preview": "astro preview"
+            },
+            "dependencies": {
+              "astro": "^4.16.18"
+            }
+          }
+          EOF
+          
+          # Create astro config
+          cat > astro.config.mjs << 'EOF'
+          import { defineConfig } from 'astro/config';
+          
+          export default defineConfig({
+            output: 'static',
+            build: {
+              format: 'directory'
+            },
+            site: 'https://km-orchestrator.azurewebsites.net',
+            base: '/diagnostics'
+          });
+          EOF
+          
+          echo "Created files:"
+          ls -la package.json astro.config.mjs
+          cat package.json
+      
+      - name: Install and build
+        run: |
+          cd "$WORK_DIR"
+          
+          echo "Installing dependencies..."
+          npm install --no-package-lock
+          
+          echo "Building project..."
+          npm run build
+          
+          echo "Build output:"
+          ls -la dist/ || echo "No dist directory"
+          
+          # Create a simple test to verify build
+          if [ -d "dist" ]; then
+            echo "Build successful - dist directory exists"
+            find dist -name "*.html" | head -5
+          else
+            echo "Build failed - no dist directory"
+            exit 1
+          fi
+      
+      - name: Prepare deployment files
+        run: |
+          cd "$WORK_DIR"
+          
+          # Create deployment directory in root
+          mkdir -p ../deployment
+          cp -r dist/* ../deployment/
+          
+          echo "Deployment files prepared:"
+          ls -la ../deployment/
+      
+      - name: Deploy manually
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "deployment"
+          skip_app_build: true
+          skip_api_build: true
