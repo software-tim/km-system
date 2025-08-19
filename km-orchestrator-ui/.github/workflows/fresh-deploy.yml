@@ -1,0 +1,157 @@
+﻿name: Fresh Deploy to Azure
+
+on:
+  push:
+    branches: [ master ]
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy Job
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: false
+      
+      - name: Setup Node.js without any caching
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          # Explicitly no cache
+      
+      - name: Debug environment
+        run: |
+          echo "=== Environment Debug ==="
+          echo "Current working directory:"
+          pwd
+          echo "Directory contents:"
+          ls -la
+          echo "Node version:"
+          node --version
+          echo "NPM version:"
+          npm --version
+          echo "Looking for km-orchestrator-ui directory:"
+          if [ -d "km-orchestrator-ui" ]; then
+            echo "Found km-orchestrator-ui directory"
+            cd km-orchestrator-ui
+            echo "Contents of km-orchestrator-ui:"
+            ls -la
+          else
+            echo "No km-orchestrator-ui directory, using current directory"
+          fi
+      
+      - name: Setup project files
+        run: |
+          # Determine working directory
+          if [ -d "km-orchestrator-ui" ]; then
+            WORK_DIR="km-orchestrator-ui"
+          else
+            WORK_DIR="."
+          fi
+          
+          echo "Working in directory: $WORK_DIR"
+          cd "$WORK_DIR"
+          
+          # Clean any existing files
+          echo "Cleaning existing files..."
+          rm -rf node_modules package-lock.json .astro dist .npm package.json astro.config.mjs
+          
+          # Create package.json
+          echo "Creating package.json..."
+          cat > package.json << 'PACKAGE_EOF'
+          {
+            "name": "km-orchestrator-ui",
+            "type": "module",
+            "version": "1.0.0",
+            "scripts": {
+              "dev": "astro dev",
+              "start": "astro dev",
+              "build": "astro build",
+              "preview": "astro preview"
+            },
+            "dependencies": {
+              "astro": "^4.16.18"
+            }
+          }
+          PACKAGE_EOF
+          
+          # Create astro config
+          echo "Creating astro.config.mjs..."
+          cat > astro.config.mjs << 'CONFIG_EOF'
+          import { defineConfig } from 'astro/config';
+
+          export default defineConfig({
+            output: 'static',
+            build: {
+              format: 'directory'
+            },
+            site: 'https://km-orchestrator.azurewebsites.net',
+            base: '/diagnostics'
+          });
+          CONFIG_EOF
+          
+          echo "Files created successfully:"
+          ls -la package.json astro.config.mjs
+          echo "Package.json content:"
+          cat package.json
+      
+      - name: Install dependencies
+        run: |
+          # Determine working directory
+          if [ -d "km-orchestrator-ui" ]; then
+            WORK_DIR="km-orchestrator-ui"
+          else
+            WORK_DIR="."
+          fi
+          
+          cd "$WORK_DIR"
+          echo "Installing dependencies in: $(pwd)"
+          
+          # Clear npm cache completely
+          npm cache clean --force
+          
+          # Install without creating lock file
+          npm install --no-package-lock --prefer-offline
+          
+          echo "Dependencies installed successfully"
+          echo "Node modules directory:"
+          ls -la node_modules/ | head -10
+      
+      - name: Build project
+        run: |
+          # Determine working directory
+          if [ -d "km-orchestrator-ui" ]; then
+            WORK_DIR="km-orchestrator-ui"
+          else
+            WORK_DIR="."
+          fi
+          
+          cd "$WORK_DIR"
+          echo "Building project in: $(pwd)"
+          
+          npm run build
+          
+          echo "Build completed successfully!"
+          echo "Dist directory contents:"
+          ls -la dist/ || echo "No dist directory created"
+          
+          if [ -d "dist" ]; then
+            echo "Dist subdirectories:"
+            find dist -type d | head -10
+          fi
+      
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "km-orchestrator-ui"
+          output_location: "dist"
+          skip_app_build: true
+          skip_api_build: true
