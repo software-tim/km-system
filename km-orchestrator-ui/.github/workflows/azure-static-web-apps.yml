@@ -1,4 +1,4 @@
-name: Deploy to Azure Static Web Apps
+﻿name: Deploy to Azure Static Web Apps
 
 on:
   push:
@@ -20,32 +20,52 @@ jobs:
         with:
           node-version: '18'
       
-      - name: Clean everything
+      - name: Create clean package.json
+        run: |
+          echo "Creating package.json from scratch..."
+          cat > package.json << 'EOF'
+          {
+            "name": "km-orchestrator-ui",
+            "type": "module",
+            "version": "1.0.0",
+            "scripts": {
+              "dev": "astro dev",
+              "start": "astro dev", 
+              "build": "astro build",
+              "preview": "astro preview",
+              "astro": "astro"
+            },
+            "dependencies": {
+              "astro": "^4.16.18"
+            }
+          }
+          EOF
+          
+          echo "Verifying package.json:"
+          cat package.json
+          echo "Checking for BOM:"
+          hexdump -C package.json | head -1
+      
+      - name: Create astro.config.mjs
+        run: |
+          echo "Creating astro.config.mjs..."
+          cat > astro.config.mjs << 'EOF'
+          import { defineConfig } from 'astro/config';
+
+          export default defineConfig({
+            output: 'static',
+            build: {
+              format: 'directory'
+            },
+            site: 'https://km-orchestrator.azurewebsites.net',
+            base: '/diagnostics'
+          });
+          EOF
+      
+      - name: Clean install
         run: |
           rm -rf node_modules package-lock.json .astro dist
-          echo "Cleaned all build artifacts"
-      
-      - name: Check for BOM in package.json
-        run: |
-          echo "Checking package.json for BOM:"
-          hexdump -C package.json | head -2
-          echo "First few characters:"
-          head -c 10 package.json | od -c
-      
-      - name: Fix package.json if needed
-        run: |
-          # Remove BOM if present
-          if [ "$(head -c 3 package.json | od -An -tx1)" = " ef bb bf" ]; then
-            echo "BOM detected, removing..."
-            tail -c +4 package.json > package.json.tmp && mv package.json.tmp package.json
-          fi
-          echo "Final package.json check:"
-          head -c 10 package.json | od -c
-      
-      - name: Install dependencies
-        run: |
-          npm cache clean --force
-          npm install --no-package-lock
+          npm install
       
       - name: Build site
         run: |

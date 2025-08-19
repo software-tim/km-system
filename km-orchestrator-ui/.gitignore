@@ -3,6 +3,9 @@ node_modules/
 .npm
 package-lock.json
 
+# Package.json will be created by workflow
+package.json
+
 # Build outputs
 dist/
 .astro/
