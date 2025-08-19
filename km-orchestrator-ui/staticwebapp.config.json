@@ -1,0 +1,15 @@
+﻿{
+  "buildCommands": [],
+  "outputPath": "dist",
+  "skipAppBuild": true,
+  "routes": [
+    {
+      "route": "/diagnostics/*",
+      "serve": "/diagnostics/index.html"
+    },
+    {
+      "route": "/*",
+      "serve": "/diagnostics/index.html"
+    }
+  ]
+}
