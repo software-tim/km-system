@@ -15,14 +15,50 @@ jobs:
           submodules: true
           lfs: false
       
-      - name: Setup Node.js
+      - name: Change to correct directory
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Directory contents:"
+          ls -la
+          echo "Changing to km-orchestrator-ui if it exists:"
+          if [ -d "km-orchestrator-ui" ]; then
+            cd km-orchestrator-ui
+            echo "Changed to km-orchestrator-ui directory"
+            pwd
+            ls -la
+          else
+            echo "Already in correct directory"
+          fi
+      
+      - name: Setup Node.js (no cache to avoid path issues)
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          # Removed cache to avoid path issues
       
-      - name: Create clean package.json
+      - name: Set working directory and clean
         run: |
-          echo "Creating package.json from scratch..."
+          # Set working directory
+          if [ -d "km-orchestrator-ui" ]; then
+            cd km-orchestrator-ui
+          fi
+          
+          echo "Working in directory: $(pwd)"
+          
+          # Clean everything
+          rm -rf node_modules package-lock.json .astro dist .npm
+          npm cache clean --force
+      
+      - name: Create package.json in correct location
+        run: |
+          # Navigate to correct directory
+          if [ -d "km-orchestrator-ui" ]; then
+            cd km-orchestrator-ui
+          fi
+          
+          echo "Creating package.json in: $(pwd)"
+          
           cat > package.json << 'EOF'
           {
             "name": "km-orchestrator-ui",
@@ -30,10 +66,9 @@ jobs:
             "version": "1.0.0",
             "scripts": {
               "dev": "astro dev",
-              "start": "astro dev", 
+              "start": "astro dev",
               "build": "astro build",
-              "preview": "astro preview",
-              "astro": "astro"
+              "preview": "astro preview"
             },
             "dependencies": {
               "astro": "^4.16.18"
@@ -41,14 +76,17 @@ jobs:
           }
           EOF
           
-          echo "Verifying package.json:"
+          echo "Package.json created:"
           cat package.json
-          echo "Checking for BOM:"
-          hexdump -C package.json | head -1
+          ls -la package.json
       
-      - name: Create astro.config.mjs
+      - name: Create astro config in correct location
         run: |
-          echo "Creating astro.config.mjs..."
+          # Navigate to correct directory
+          if [ -d "km-orchestrator-ui" ]; then
+            cd km-orchestrator-ui
+          fi
+          
           cat > astro.config.mjs << 'EOF'
           import { defineConfig } from 'astro/config';
 
@@ -61,17 +99,25 @@ jobs:
             base: '/diagnostics'
           });
           EOF
+          
+          echo "Astro config created in: $(pwd)"
+          ls -la astro.config.mjs
       
-      - name: Clean install
+      - name: Install and build in correct directory
         run: |
-          rm -rf node_modules package-lock.json .astro dist
-          npm install
-      
-      - name: Build site
-        run: |
+          # Navigate to correct directory
+          if [ -d "km-orchestrator-ui" ]; then
+            cd km-orchestrator-ui
+          fi
+          
+          echo "Installing in: $(pwd)"
+          npm install --no-package-lock
+          
+          echo "Building in: $(pwd)"
           npm run build
-          echo "Build completed successfully!"
-          ls -la dist/
+          
+          echo "Build output:"
+          ls -la dist/ || echo "No dist directory found"
       
       - name: Deploy to Azure
         uses: Azure/static-web-apps-deploy@v1
@@ -79,5 +125,6 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "/"
+          app_location: "km-orchestrator-ui"
           output_location: "dist"
+          skip_app_build: true
