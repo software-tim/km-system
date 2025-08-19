@@ -1,0 +1,40 @@
+﻿name: Deploy with Azure CLI
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy-with-cli:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Deploy file directly
+        run: |
+          echo "Direct file deployment approach"
+          
+          # Create simple deployment structure
+          mkdir -p deploy/diagnostics
+          
+          # Copy our HTML file
+          cp diagnostics.html deploy/diagnostics/index.html
+          
+          echo "Deployment structure:"
+          find deploy -type f
+          
+          echo "File contents preview:"
+          head -20 deploy/diagnostics/index.html
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: diagnostics-site
+          path: deploy/
+          
+      - name: Notify completion
+        run: |
+          echo "✅ Diagnostics site created and uploaded as artifact"
+          echo "📁 Files prepared for manual deployment to Azure"
+          echo "🌐 Ready for: https://km-orchestrator.azurewebsites.net/diagnostics"
