@@ -1,0 +1,25 @@
+---
+import ServiceHealth   from "../components/dashboard/ServiceHealth.tsx";
+import QuickActions    from "../components/dashboard/QuickActions.tsx";
+import RecentActivity  from "../components/dashboard/RecentActivity.tsx";
+import DocumentStats   from "../components/dashboard/DocumentStats.tsx";
+import SearchInterface from "../components/orchestrator/SearchInterface.tsx";
+import ChatPreview     from "../components/chat/ChatPreview.tsx";
+---
+<html lang="en">
+  <body style="font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 16px;">
+    <h1>KM Orchestrator</h1>
+
+    <ServiceHealth   client:only="react" />
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px;">
+      <QuickActions    client:only="react" />
+      <RecentActivity  client:only="react" />
+      <DocumentStats   client:only="react" />
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px;">
+      <SearchInterface client:only="react" />
+      <ChatPreview     client:only="react" />
+    </div>
+  </body>
+</html>

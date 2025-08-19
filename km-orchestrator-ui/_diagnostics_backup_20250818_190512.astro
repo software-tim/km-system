@@ -1,0 +1,287 @@
+﻿---
+import Layout from "../../layouts/Layout.astro";
+
+// Always use production URLs - your services are working
+const ORCH  = 'https://km-orchestrator.azurewebsites.net';
+const DOCS  = 'https://km-mcp-sql-docs.azurewebsites.net';
+const SRCH  = 'https://km-mcp-search.azurewebsites.net';
+const LLM   = 'https://km-mcp-llm.azurewebsites.net';
+const GRAPH = 'https://km-mcp-graphrag.azurewebsites.net';
+---
+
+<Layout title="KM Orchestrator Diagnostics">
+  <div class="diag-root"
+       id="diag-root"
+       data-orch={ORCH}
+       data-docs={DOCS}
+       data-search={SRCH}
+       data-llm={LLM}
+       data-graphrag={GRAPH}>
+
+    <div class="container">
+      <div class="header">
+        <h1>🔧 KM Orchestrator System Diagnostics</h1>
+        <p>Testing your working Azure services</p>
+        <div class="timestamp" id="last-updated">Last updated: <span id="timestamp">Not run yet</span></div>
+      </div>
+
+      <div class="controls">
+        <button class="refresh-all" data-cmd="run-all">🚀 Run All Diagnostics</button>
+        <button class="clear-all" data-cmd="clear-all">🧹 Clear Results</button>
+      </div>
+
+      <div class="summary-section">
+        <h2>📈 System Health Summary</h2>
+        <div class="summary-grid">
+          <div class="summary-stat">
+            <div class="number working" id="workingCount">-</div>
+            <div class="label">✅ Working</div>
+          </div>
+          <div class="summary-stat">
+            <div class="number broken" id="brokenCount">-</div>
+            <div class="label">❌ Broken</div>
+          </div>
+          <div class="summary-stat">
+            <div class="number" id="totalCount">-</div>
+            <div class="label">📊 Total Tests</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="diagnostic-grid">
+        <!-- Service Health Tests -->
+        <div class="diagnostic-card">
+          <h3>🔗 Service Health Checks</h3>
+          
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">km-orchestrator.azurewebsites.net/health</div>
+            </div>
+            <button class="test-button" data-cmd="test" data-url="https://km-orchestrator.azurewebsites.net/health" data-target="orch-health">Test Orchestrator</button>
+            <div class="test-response" id="orch-health">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">km-mcp-sql-docs.azurewebsites.net/health</div>
+            </div>
+            <button class="test-button" data-cmd="test" data-url="https://km-mcp-sql-docs.azurewebsites.net/health" data-target="docs-health">Test Docs Service</button>
+            <div class="test-response" id="docs-health">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">km-mcp-search.azurewebsites.net/health</div>
+            </div>
+            <button class="test-button" data-cmd="test" data-url="https://km-mcp-search.azurewebsites.net/health" data-target="search-health">Test Search Service</button>
+            <div class="test-response" id="search-health">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">km-mcp-llm.azurewebsites.net/health</div>
+            </div>
+            <button class="test-button" data-cmd="test" data-url="https://km-mcp-llm.azurewebsites.net/health" data-target="llm-health">Test LLM Service</button>
+            <div class="test-response" id="llm-health">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">km-mcp-graphrag.azurewebsites.net/health</div>
+            </div>
+            <button class="test-button" data-cmd="test" data-url="https://km-mcp-graphrag.azurewebsites.net/health" data-target="graphrag-health">Test GraphRAG Service</button>
+            <div class="test-response" id="graphrag-health">Click test to check...</div>
+          </div>
+        </div>
+
+        <!-- Orchestrator API Tests -->
+        <div class="diagnostic-card">
+          <h3>🎯 Orchestrator API Tests</h3>
+          
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /api/chat</div>
+            </div>
+            <button class="test-button" data-cmd="post" 
+                    data-url="https://km-orchestrator.azurewebsites.net/api/chat" 
+                    data-body='{"message":"test diagnostic query"}' 
+                    data-target="chat-test">Test Chat API</button>
+            <div class="test-response" id="chat-test">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /api/search</div>
+            </div>
+            <button class="test-button" data-cmd="post" 
+                    data-url="https://km-orchestrator.azurewebsites.net/api/search" 
+                    data-body='{"query":"test","limit":3}' 
+                    data-target="search-test">Test Search API</button>
+            <div class="test-response" id="search-test">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /api/upload</div>
+            </div>
+            <button class="test-button" data-cmd="post" 
+                    data-url="https://km-orchestrator.azurewebsites.net/api/upload" 
+                    data-body='{"title":"Test Doc","content":"Test content","classification":"Test"}' 
+                    data-target="upload-test">Test Upload API</button>
+            <div class="test-response" id="upload-test">Click test to check...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .diag-root * { margin: 0; padding: 0; box-sizing: border-box; }
+  .diag-root { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+  .container { max-width: 1200px; margin: 0 auto; }
+  .header { background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 30px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); }
+  .header h1 { color: #333; font-size: 2.5rem; margin-bottom: 10px; }
+  .header p { color: #666; font-size: 1.1rem; }
+  .timestamp { margin-top: 15px; color: #888; font-size: 0.9rem; }
+  .controls { display: flex; gap: 15px; margin-bottom: 20px; }
+  .refresh-all, .clear-all { background: #667eea; color: #fff; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s ease; }
+  .refresh-all:hover { background: #5a67d8; }
+  .clear-all { background: #f56565; }
+  .clear-all:hover { background: #e53e3e; }
+  .diagnostic-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 20px; }
+  .diagnostic-card { background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 25px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); }
+  .diagnostic-card h3 { color: #333; font-size: 1.3rem; margin-bottom: 20px; border-bottom: 2px solid #edf2f7; padding-bottom: 10px; }
+  .endpoint-test { margin-bottom: 20px; padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px; }
+  .endpoint-info { margin-bottom: 10px; }
+  .endpoint-path { font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-weight: bold; font-size: 0.9rem; color: #2d3748; }
+  .test-button { background: #667eea; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s ease; }
+  .test-button:hover { background: #5a67d8; }
+  .test-button.working { background: #10b981; }
+  .test-button.broken { background: #ef4444; }
+  .test-button.testing { background: #805ad5; }
+  .test-response { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-top: 10px; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-size: 0.8rem; max-height: 200px; overflow-y: auto; white-space: pre-wrap; }
+  .summary-section { background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 25px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); }
+  .summary-section h2 { color: #333; margin-bottom: 20px; font-size: 1.5rem; }
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+  .summary-stat { text-align: center; padding: 20px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; }
+  .summary-stat .number { font-size: 2.5rem; font-weight: bold; margin-bottom: 8px; }
+  .summary-stat .label { color: #666; font-size: 0.9rem; font-weight: 600; }
+  .number.working { color: #10b981; }
+  .number.broken { color: #ef4444; }
+</style>
+
+<script is:inline>
+(function() {
+  let testResults = {};
+  
+  function setText(id, txt) { 
+    const el = document.getElementById(id); 
+    if (el) el.textContent = txt; 
+  }
+  
+  function mark(id, status) {
+    testResults[id] = status;
+    const btns = document.querySelectorAll(`[data-target="${id}"]`);
+    btns.forEach(btn => btn.className = `test-button ${status}`);
+    updateSummary();
+  }
+  
+  function updateSummary() {
+    const vals = Object.values(testResults);
+    const working = vals.filter(v => v === 'working').length;
+    const broken = vals.filter(v => v === 'broken').length;
+    const total = vals.length;
+    
+    setText('workingCount', working);
+    setText('brokenCount', broken);
+    setText('totalCount', total);
+    setText('timestamp', new Date().toLocaleString());
+  }
+  
+  // Simple fetch with proper error handling for CORS
+  async function testService(url, target, options = {}) {
+    const btn = document.querySelector(`[data-target="${target}"]`);
+    if (btn) {
+      btn.className = 'test-button testing';
+      btn.disabled = true;
+    }
+    
+    setText(target, '🔄 Testing...');
+    
+    try {
+      const response = await fetch(url, {
+        method: options.method || 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: options.body || undefined,
+        mode: 'cors' // Explicitly set CORS mode
+      });
+      
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        data = await response.text();
+      }
+      
+      const result = {
+        status: response.status,
+        statusText: response.statusText,
+        data: data
+      };
+      
+      setText(target, JSON.stringify(result, null, 2));
+      mark(target, response.ok ? 'working' : 'broken');
+      
+    } catch (error) {
+      setText(target, `Error: ${error.message}\n\nThis is likely a CORS issue. Your service is probably working but needs CORS headers to allow browser requests.`);
+      mark(target, 'broken');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+      }
+    }
+  }
+  
+  // Event handler
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('[data-cmd]');
+    if (!btn) return;
+    
+    const cmd = btn.getAttribute('data-cmd');
+    const url = btn.getAttribute('data-url');
+    const target = btn.getAttribute('data-target');
+    const body = btn.getAttribute('data-body');
+    
+    if (cmd === 'test') {
+      testService(url, target);
+    } else if (cmd === 'post') {
+      testService(url, target, { method: 'POST', body });
+    } else if (cmd === 'run-all') {
+      // Test all services
+      testService('https://km-orchestrator.azurewebsites.net/health', 'orch-health');
+      setTimeout(() => testService('https://km-mcp-sql-docs.azurewebsites.net/health', 'docs-health'), 500);
+      setTimeout(() => testService('https://km-mcp-search.azurewebsites.net/health', 'search-health'), 1000);
+      setTimeout(() => testService('https://km-mcp-llm.azurewebsites.net/health', 'llm-health'), 1500);
+      setTimeout(() => testService('https://km-mcp-graphrag.azurewebsites.net/health', 'graphrag-health'), 2000);
+    } else if (cmd === 'clear-all') {
+      testResults = {};
+      document.querySelectorAll('.test-response').forEach(el => {
+        el.textContent = 'Click test to check...';
+      });
+      document.querySelectorAll('.test-button').forEach(btn => {
+        if (!btn.getAttribute('data-cmd') || ['test', 'post'].includes(btn.getAttribute('data-cmd'))) {
+          btn.className = 'test-button';
+        }
+      });
+      updateSummary();
+    }
+  });
+  
+  console.log('🎯 Diagnostics ready - testing your working Azure services');
+})();
+</script>

@@ -1,0 +1,372 @@
+﻿---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout title="KM Orchestrator Diagnostics">
+  <div class="diag-root">
+    <div class="container">
+      <div class="header">
+        <h1>🔧 KM Orchestrator System Diagnostics</h1>
+        <p>Simple working diagnostics for your services</p>
+      </div>
+
+      <div class="controls">
+        <button id="run-health-btn">💓 Test Health Endpoints</button>
+        <button id="test-chat-btn">🎯 Test Chat API</button>
+        <button id="test-search-btn">🔍 Test Search API</button>
+        <button id="clear-btn">🧹 Clear Results</button>
+      </div>
+
+      <div class="summary">
+        <div>✅ Working: <span id="working-count">0</span></div>
+        <div>❌ Broken: <span id="broken-count">0</span></div>
+        <div>📊 Total: <span id="total-count">0</span></div>
+      </div>
+
+      <div class="tests">
+        <div class="test-item">
+          <h3>🎯 Orchestrator Health</h3>
+          <button id="orch-test-btn">Test</button>
+          <div id="orch-result" class="result">Click test to check...</div>
+        </div>
+
+        <div class="test-item">
+          <h3>📚 SQL Docs Health</h3>
+          <button id="docs-test-btn">Test</button>
+          <div id="docs-result" class="result">Click test to check...</div>
+        </div>
+
+        <div class="test-item">
+          <h3>🔍 Search Health</h3>
+          <button id="search-health-btn">Test</button>
+          <div id="search-result" class="result">Click test to check...</div>
+        </div>
+
+        <div class="test-item">
+          <h3>🤖 LLM Health</h3>
+          <button id="llm-test-btn">Test</button>
+          <div id="llm-result" class="result">Click test to check...</div>
+        </div>
+
+        <div class="test-item">
+          <h3>🕸️ GraphRAG Health</h3>
+          <button id="graphrag-test-btn">Test</button>
+          <div id="graphrag-result" class="result">Click test to check...</div>
+        </div>
+
+        <div class="test-item">
+          <h3>🎯 Orchestrator Chat API</h3>
+          <button id="chat-api-btn">Test Chat</button>
+          <div id="chat-result" class="result">Click test to check...</div>
+        </div>
+
+        <div class="test-item">
+          <h3>🔍 Orchestrator Search API</h3>
+          <button id="search-api-btn">Test Search</button>
+          <div id="search-api-result" class="result">Click test to check...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .diag-root {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .header {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .header h1 {
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  .controls {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .controls button, .test-item button {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin: 5px;
+    transition: background 0.3s;
+  }
+  
+  .controls button:hover, .test-item button:hover {
+    background: #5a67d8;
+  }
+  
+  .summary {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+  }
+  
+  .tests {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+  }
+  
+  .test-item {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 20px;
+  }
+  
+  .test-item h3 {
+    margin-bottom: 15px;
+    color: #333;
+  }
+  
+  .result {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    max-height: 200px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+  
+  .result.success {
+    border-color: #28a745;
+    background: #d4edda;
+  }
+  
+  .result.error {
+    border-color: #dc3545;
+    background: #f8d7da;
+  }
+</style>
+
+<script>
+  let testResults = {};
+
+  function updateSummary() {
+    const working = Object.values(testResults).filter(r => r === 'success').length;
+    const broken = Object.values(testResults).filter(r => r === 'error').length;
+    const total = Object.keys(testResults).length;
+    
+    document.getElementById('working-count').textContent = working;
+    document.getElementById('broken-count').textContent = broken;
+    document.getElementById('total-count').textContent = total;
+  }
+
+  async function testEndpoint(url, resultId) {
+    const resultElement = document.getElementById(resultId);
+    resultElement.textContent = '🔄 Testing...';
+    resultElement.className = 'result';
+    
+    try {
+      const startTime = Date.now();
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        },
+        mode: 'cors'
+      });
+      
+      const endTime = Date.now();
+      const responseTime = endTime - startTime;
+      
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        data = await response.text();
+      }
+      
+      const result = {
+        status: response.status,
+        responseTime: responseTime + 'ms',
+        data: data
+      };
+      
+      resultElement.textContent = JSON.stringify(result, null, 2);
+      
+      if (response.ok) {
+        resultElement.className = 'result success';
+        testResults[resultId] = 'success';
+      } else {
+        resultElement.className = 'result error';
+        testResults[resultId] = 'error';
+      }
+      
+    } catch (error) {
+      const errorMsg = `Error: ${error.message}\n\nThis is likely a CORS issue - your service is probably working but needs CORS headers for browser access.`;
+      resultElement.textContent = errorMsg;
+      resultElement.className = 'result error';
+      testResults[resultId] = 'error';
+    }
+    
+    updateSummary();
+  }
+
+  async function testChatAPI() {
+    const resultElement = document.getElementById('chat-result');
+    resultElement.textContent = '🔄 Testing chat API...';
+    resultElement.className = 'result';
+    
+    try {
+      const response = await fetch('https://km-orchestrator.azurewebsites.net/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          message: 'What can you tell me about this knowledge management system?'
+        }),
+        mode: 'cors'
+      });
+      
+      const data = await response.json();
+      resultElement.textContent = JSON.stringify(data, null, 2);
+      
+      if (response.ok) {
+        resultElement.className = 'result success';
+        testResults['chat-result'] = 'success';
+      } else {
+        resultElement.className = 'result error';
+        testResults['chat-result'] = 'error';
+      }
+      
+    } catch (error) {
+      resultElement.textContent = `Error: ${error.message}`;
+      resultElement.className = 'result error';
+      testResults['chat-result'] = 'error';
+    }
+    
+    updateSummary();
+  }
+
+  async function testSearchAPI() {
+    const resultElement = document.getElementById('search-api-result');
+    resultElement.textContent = '🔄 Testing search API...';
+    resultElement.className = 'result';
+    
+    try {
+      const response = await fetch('https://km-orchestrator.azurewebsites.net/api/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          query: 'knowledge management',
+          limit: 5
+        }),
+        mode: 'cors'
+      });
+      
+      const data = await response.json();
+      resultElement.textContent = JSON.stringify(data, null, 2);
+      
+      if (response.ok) {
+        resultElement.className = 'result success';
+        testResults['search-api-result'] = 'success';
+      } else {
+        resultElement.className = 'result error';
+        testResults['search-api-result'] = 'error';
+      }
+      
+    } catch (error) {
+      resultElement.textContent = `Error: ${error.message}`;
+      resultElement.className = 'result error';
+      testResults['search-api-result'] = 'error';
+    }
+    
+    updateSummary();
+  }
+
+  // Use the SAME pattern that works for the health button
+  document.getElementById('run-health-btn').addEventListener('click', function() {
+    console.log('Running all health tests...');
+    testEndpoint('https://km-orchestrator.azurewebsites.net/health', 'orch-result');
+    setTimeout(() => testEndpoint('https://km-mcp-sql-docs.azurewebsites.net/health', 'docs-result'), 500);
+    setTimeout(() => testEndpoint('https://km-mcp-search.azurewebsites.net/health', 'search-result'), 1000);
+    setTimeout(() => testEndpoint('https://km-mcp-llm.azurewebsites.net/health', 'llm-result'), 1500);
+    setTimeout(() => testEndpoint('https://km-mcp-graphrag.azurewebsites.net/health', 'graphrag-result'), 2000);
+  });
+
+  document.getElementById('clear-btn').addEventListener('click', function() {
+    console.log('Clearing all results...');
+    testResults = {};
+    
+    document.querySelectorAll('.result').forEach(el => {
+      el.textContent = 'Click test to check...';
+      el.className = 'result';
+    });
+    
+    updateSummary();
+  });
+
+  // Individual test buttons - using the SAME working pattern
+  document.getElementById('orch-test-btn').addEventListener('click', function() {
+    testEndpoint('https://km-orchestrator.azurewebsites.net/health', 'orch-result');
+  });
+
+  document.getElementById('docs-test-btn').addEventListener('click', function() {
+    testEndpoint('https://km-mcp-sql-docs.azurewebsites.net/health', 'docs-result');
+  });
+
+  document.getElementById('search-health-btn').addEventListener('click', function() {
+    testEndpoint('https://km-mcp-search.azurewebsites.net/health', 'search-result');
+  });
+
+  document.getElementById('llm-test-btn').addEventListener('click', function() {
+    testEndpoint('https://km-mcp-llm.azurewebsites.net/health', 'llm-result');
+  });
+
+  document.getElementById('graphrag-test-btn').addEventListener('click', function() {
+    testEndpoint('https://km-mcp-graphrag.azurewebsites.net/health', 'graphrag-result');
+  });
+
+  document.getElementById('chat-api-btn').addEventListener('click', function() {
+    testChatAPI();
+  });
+
+  document.getElementById('search-api-btn').addEventListener('click', function() {
+    testSearchAPI();
+  });
+
+  document.getElementById('test-chat-btn').addEventListener('click', function() {
+    testChatAPI();
+  });
+
+  document.getElementById('test-search-btn').addEventListener('click', function() {
+    testSearchAPI();
+  });
+
+  console.log('🎯 All buttons configured with working event listeners!');
+</script>

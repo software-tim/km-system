@@ -1,0 +1,310 @@
+---
+import Layout from "../../layouts/Layout.astro";
+
+const ORCH  = import.meta.env.PUBLIC_ORCH_BASE;
+const DOCS  = import.meta.env.PUBLIC_DOCS_BASE;
+const SRCH  = import.meta.env.PUBLIC_SEARCH_BASE;
+const LLM   = import.meta.env.PUBLIC_LLM_BASE;
+const GRAPH = import.meta.env.PUBLIC_GRAPHRAG_BASE;
+---
+
+<Layout>
+  <div class="diag-root"
+       id="diag-root"
+       data-orch={ORCH}
+       data-docs={DOCS}
+       data-search={SRCH}
+       data-llm={LLM}
+       data-graphrag={GRAPH}>
+
+    <div class="container">
+      <div class="header">
+        <h1>KM Orchestrator System Diagnostics</h1>
+        <p>Comprehensive testing and monitoring of all orchestrator capabilities and underlying services</p>
+      </div>
+
+      <button class="refresh-all" data-cmd="run-all">Run All Diagnostics</button>
+
+      <div class="summary-section">
+        <h2>System Health Summary</h2>
+        <div class="summary-grid">
+          <div class="summary-stat"><div class="number working" id="workingCount">-</div><div class="label">Working</div></div>
+          <div class="summary-stat"><div class="number broken" id="brokenCount">-</div><div class="label">Broken</div></div>
+          <div class="summary-stat"><div class="number partial" id="partialCount">-</div><div class="label">Partial</div></div>
+          <div class="summary-stat"><div class="number" id="totalCount">-</div><div class="label">Total Tests</div></div>
+        </div>
+      </div>
+
+      <div class="diagnostic-grid">
+        <!-- Orchestrator Core -->
+        <div class="diagnostic-card">
+          <h3>Orchestrator Core Functions</h3>
+          <div class="endpoint-test">
+            <div class="endpoint-path">GET orch:/health</div>
+            <button class="test-button" data-cmd="orch-get" data-path="/health" data-target="health-result">Test Health Check</button>
+            <div class="test-response" id="health-result">Click test to check...</div>
+          </div>
+          <div class="endpoint-test">
+            <div class="endpoint-path">GET orch:/services/status</div>
+            <button class="test-button" data-cmd="orch-get" data-path="/services/status" data-target="services-result">Test Services Status</button>
+            <div class="test-response" id="services-result">Click test to check...</div>
+          </div>
+          <div class="endpoint-test">
+            <div class="endpoint-path">POST orch:/api/chat</div>
+            <button class="test-button" data-cmd="orch-post" data-path="/api/chat" data-body='{"message":"test query for diagnostics"}' data-target="orchestrator-chat-result">Test Chat Function</button>
+            <div class="test-response" id="orchestrator-chat-result">Click test to check...</div>
+          </div>
+        </div>
+
+        <!-- Document Management -->
+        <div class="diagnostic-card">
+          <h3>Document Management</h3>
+          <div class="endpoint-test">
+            <div class="endpoint-path">POST orch:/api/upload</div>
+            <button class="test-button" data-cmd="orch-post" data-path="/api/upload"
+                    data-body='{"title":"Diagnostic Test Document","content":"This is a test document for diagnostic purposes.","classification":"Test","entities":"diagnostics, test","metadata":"{\"source\":\"diagnostics\"}"}'
+                    data-target="upload-result">Test Document Upload</button>
+            <div class="test-response" id="upload-result">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-path">POST docs:/tools/store-document</div>
+            <button class="test-button" data-cmd="docs-post" data-path="/tools/store-document"
+                    data-body='{"title":"Direct Test Document","content":"This is a direct test to the document service.","file_type":"text","metadata":{"source":"dashboard_test","classification":"Test"}}'
+                    data-target="direct-store-result">Test Direct Store</button>
+            <div class="test-response" id="direct-store-result">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-path">GET docs:/tools/database-stats</div>
+            <button class="test-button" data-cmd="docs-get" data-path="/tools/database-stats" data-target="doc-stats-result">Test Document Stats</button>
+            <div class="test-response" id="doc-stats-result">Click test to check...</div>
+          </div>
+        </div>
+
+        <!-- Search -->
+        <div class="diagnostic-card">
+          <h3>Search Functions</h3>
+          <div class="endpoint-test">
+            <div class="endpoint-path">POST orch:/api/search</div>
+            <button class="test-button" data-cmd="orch-post" data-path="/api/search" data-body='{"query":"test","limit":3}' data-target="search-result">Test Orchestrator Search</button>
+            <div class="test-response" id="search-result">Click test to check...</div>
+          </div>
+          <div class="endpoint-test">
+            <div class="endpoint-path">POST docs:/tools/search-documents</div>
+            <button class="test-button" data-cmd="docs-post" data-path="/tools/search-documents" data-body='{"query":"test","max_results":3}' data-target="direct-search-result">Test Direct Search</button>
+            <div class="test-response" id="direct-search-result">Click test to check...</div>
+          </div>
+          <div class="endpoint-test">
+            <div class="endpoint-path">GET search:/health</div>
+            <button class="test-button" data-cmd="search-get" data-path="/health" data-target="search-service-result">Test Search Service</button>
+            <div class="test-response" id="search-service-result">Click test to check...</div>
+          </div>
+        </div>
+
+        <!-- AI & LLM -->
+        <div class="diagnostic-card">
+          <h3>AI & LLM Functions</h3>
+          <div class="endpoint-test">
+            <div class="endpoint-path">GET llm:/health</div>
+            <button class="test-button" data-cmd="llm-get" data-path="/health" data-target="llm-health-result">Test LLM Health</button>
+            <div class="test-response" id="llm-health-result">Click test to check...</div>
+          </div>
+          <div class="endpoint-test">
+            <div class="endpoint-path">POST orch:/api/analyze</div>
+            <button class="test-button" data-cmd="orch-post" data-path="/api/analyze" data-body='{"type":"test","content":"diagnostic test"}' data-target="analyze-result">Test Analysis Endpoint</button>
+            <div class="test-response" id="analyze-result">Click test to check...</div>
+          </div>
+          <div class="endpoint-test">
+            <div class="endpoint-path">POST orch:/api/analyze (RAG)</div>
+            <button class="test-button" data-cmd="orch-post" data-path="/api/analyze" data-body='{"query":"test query","documents":[]}' data-target="rag-result">Test RAG Pipeline</button>
+            <div class="test-response" id="rag-result">Click test to check...</div>
+          </div>
+        </div>
+
+        <!-- Knowledge Graphs -->
+        <div class="diagnostic-card">
+          <h3>Knowledge Graphs</h3>
+          <div class="endpoint-test">
+            <div class="endpoint-path">GET graphrag:/health</div>
+            <button class="test-button" data-cmd="graphrag-get" data-path="/health" data-target="graphrag-health-result">Test GraphRAG Health</button>
+            <div class="test-response" id="graphrag-health-result">Click test to check...</div>
+          </div>
+          <div class="endpoint-test">
+            <div class="endpoint-path">POST graphrag:/service-diagnostics</div>
+            <button class="test-button" data-cmd="graphrag-post" data-path="/service-diagnostics" data-body='{"source":"test_documents"}' data-target="build-graph-result">Test Build Graph</button>
+            <div class="test-response" id="build-graph-result">Click test to check...</div>
+          </div>
+          <div class="endpoint-test">
+            <div class="endpoint-path">POST graphrag:/service-diagnostics (relationships)</div>
+            <button class="test-button" data-cmd="graphrag-post" data-path="/service-diagnostics" data-body='{"entity":"test"}' data-target="relationships-result">Test Relationships</button>
+            <div class="test-response" id="relationships-result">Click test to check...</div>
+          </div>
+        </div>
+
+        <!-- Service Connectivity -->
+        <div class="diagnostic-card">
+          <h3>Service Connectivity</h3>
+          <div class="service-health">
+            <div><div class="service-name">km-mcp-sql-docs</div><div class="service-url">{DOCS}</div></div>
+            <button class="test-button" data-cmd="docs-get" data-path="/health" data-target="docs-connectivity">Test</button>
+          </div>
+          <div class="test-response" id="docs-connectivity">Not tested</div>
+
+          <div class="service-health">
+            <div><div class="service-name">km-mcp-search</div><div class="service-url">{SRCH}</div></div>
+            <button class="test-button" data-cmd="search-get" data-path="/health" data-target="search-connectivity">Test</button>
+          </div>
+          <div class="test-response" id="search-connectivity">Not tested</div>
+
+          <div class="service-health">
+            <div><div class="service-name">km-mcp-llm</div><div class="service-url">{LLM}</div></div>
+            <button class="test-button" data-cmd="llm-get" data-path="/health" data-target="llm-connectivity">Test</button>
+          </div>
+          <div class="test-response" id="llm-connectivity">Not tested</div>
+
+          <div class="service-health">
+            <div><div class="service-name">km-mcp-graphrag</div><div class="service-url">{GRAPH}</div></div>
+            <button class="test-button" data-cmd="graphrag-get" data-path="/health" data-target="graphrag-connectivity">Test</button>
+          </div>
+          <div class="test-response" id="graphrag-connectivity">Not tested</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .diag-root * { margin:0; padding:0; box-sizing:border-box }
+  .diag-root { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); min-height:100vh; padding:20px }
+  .diag-root .container { max-width:1600px; margin:0 auto }
+  .diag-root .header { background:rgba(255,255,255,.95); border-radius:15px; padding:30px; margin-bottom:20px; box-shadow:0 8px 32px rgba(0,0,0,.1); backdrop-filter:blur(10px) }
+  .diag-root .header h1 { color:#333; font-size:2.5rem; margin-bottom:10px }
+  .diag-root .header p { color:#666; font-size:1.1rem }
+  .diagnostic-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(400px,1fr)); gap:20px; margin-bottom:30px }
+  .diagnostic-card { background:rgba(255,255,255,.95); border-radius:15px; padding:25px; box-shadow:0 8px 32px rgba(0,0,0,.1); backdrop-filter:blur(10px) }
+  .endpoint-test { margin-bottom:15px; padding:15px; border:1px solid #e2e8f0; border-radius:8px }
+  .endpoint-path { font-family:'Courier New',monospace; font-weight:bold; margin-bottom:8px }
+  .test-button { background:#667eea; color:#fff; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; margin:5px 5px 5px 0; font-size:.9rem; transition:background .3s ease }
+  .test-button:hover { background:#5a67d8 }
+  .test-button.working{ background:#10b981 } .test-button.broken{background:#ef4444} .test-button.partial{background:#f59e0b}
+  .test-response{ background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-top:10px; font-family:'Courier New',monospace; font-size:.8rem; max-height:200px; overflow-y:auto; white-space:pre-wrap }
+  .summary-section{ background:rgba(255,255,255,.95); border-radius:15px; padding:25px; margin-bottom:20px; box-shadow:0 8px 32px rgba(0,0,0,.1) }
+  .summary-grid{ display:grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap:15px }
+  .summary-stat{ text-align:center; padding:15px; border-radius:8px; background:#f8fafc }
+  .summary-stat .number{ font-size:2rem; font-weight:bold; margin-bottom:5px }
+  .summary-stat .label{ color:#666; font-size:.9rem }
+  .service-health{ display:flex; justify-content:space-between; align-items:center; padding:10px; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:10px }
+  .service-name{ font-weight:bold } .service-url{ font-family:'Courier New',monospace; font-size:.8rem; color:#666 }
+</style>
+
+<script is:inline>
+(function(){
+  // Read bases from data-* (absolute URLs), and also define local dev proxy paths:
+  var root = document.getElementById('diag-root');
+  var abs = {
+    orch: root.dataset.orch,
+    docs: root.dataset.docs,
+    search: root.dataset.search,
+    llm: root.dataset.llm,
+    graphrag: root.dataset.graphrag
+  };
+  var proxy = { orch:'/orch', docs:'/docs', search:'/search', llm:'/llm', graphrag:'/graphrag' };
+
+  // Use proxy paths during dev (Astro/Vite), otherwise use absolute env URLs:
+  var isDev = location.hostname === 'localhost' || location.port === '3000';
+  var base = {
+    orch:     isDev ? proxy.orch     : abs.orch,
+    docs:     isDev ? proxy.docs     : abs.docs,
+    search:   isDev ? proxy.search   : abs.search,
+    llm:      isDev ? proxy.llm      : abs.llm,
+    graphrag: isDev ? proxy.graphrag : abs.graphrag
+  };
+
+  var testResults = {};
+  function setText(id, txt){ var el=document.getElementById(id); if(el) el.textContent=txt; }
+  function mark(id, status){
+    testResults[id]=status;
+    var btns=document.querySelectorAll('[data-target="'+id+'"]');
+    for (var i=0;i<btns.length;i++) btns[i].className='test-button '+status;
+    updateSummary();
+  }
+  function updateSummary(){
+    var vals=Object.keys(testResults).map(function(k){return testResults[k];});
+    var w=vals.filter(v=>v==='working').length, b=vals.filter(v=>v==='broken').length, p=vals.filter(v=>v==='partial').length, t=vals.length;
+    setText('workingCount',w); setText('brokenCount',b); setText('partialCount',p); setText('totalCount',t);
+    document.getElementById('workingCount').className='number working';
+    document.getElementById('brokenCount').className='number broken';
+    document.getElementById('partialCount').className='number partial';
+  }
+
+  async function req(baseUrl, path, init){
+    // Normalize slashes
+    var url = baseUrl.replace(/\/$/,'') + path;
+    var res = await fetch(url, init);
+    var txt = await res.text();
+    try { return { ok: res.ok, data: JSON.parse(txt) }; }
+    catch { return { ok: res.ok, data: { raw: txt } }; }
+  }
+
+  // Test helpers
+  async function GET(b, path, target){
+    setText(target,'Testing...');
+    try{
+      var r=await req(b, path, { method:'GET' });
+      setText(target, JSON.stringify(r.data, null, 2));
+      mark(target, r.ok ? 'working' : 'broken');
+    }catch(e){ setText(target,'Error: '+e.message); mark(target,'broken'); }
+  }
+  async function POST(b, path, body, target){
+    setText(target,'Testing...');
+    try{
+      var r=await req(b, path, { method:'POST', headers:{'Content-Type':'application/json'}, body: body || '{}' });
+      setText(target, JSON.stringify(r.data, null, 2));
+      mark(target, r.ok ? 'working' : 'broken');
+    }catch(e){ setText(target,'Error: '+e.message); mark(target,'broken'); }
+  }
+
+  // Click router
+  document.addEventListener('click', function(e){
+    var btn=e.target.closest('.test-button, .refresh-all'); if(!btn) return;
+    var cmd=btn.getAttribute('data-cmd'), p=btn.getAttribute('data-path'), t=btn.getAttribute('data-target'), body=btn.getAttribute('data-body');
+    if(cmd==='run-all') return runAll();
+    if(cmd==='orch-get')     return GET(base.orch, p, t);
+    if(cmd==='orch-post')    return POST(base.orch, p, body, t);
+    if(cmd==='docs-get')     return GET(base.docs, p, t);
+    if(cmd==='docs-post')    return POST(base.docs, p, body, t);
+    if(cmd==='search-get')   return GET(base.search, p, t);
+    if(cmd==='llm-get')      return GET(base.llm, p, t);
+    if(cmd==='graphrag-get') return GET(base.graphrag, p, t);
+    if(cmd==='graphrag-post')return POST(base.graphrag, p, body, t);
+  });
+
+  async function runAll(){
+    var Q=[
+      ()=>GET(base.orch,'/health','health-result'),
+      ()=>GET(base.orch,'/services/status','services-result'),
+      ()=>POST(base.orch,'/api/chat', JSON.stringify({message:'test query for diagnostics'}),'orchestrator-chat-result'),
+      ()=>POST(base.orch,'/api/upload', JSON.stringify({title:'Diagnostic Test Document',content:'This is a test document for diagnostic purposes.',classification:'Test',entities:'diagnostics, test',metadata:'{\"source\":\"diagnostics\"}'}),'upload-result'),
+      ()=>POST(base.docs,'/tools/store-document', JSON.stringify({title:'Direct Test Document',content:'This is a direct test to the document service.',file_type:'text',metadata:{source:'dashboard_test',classification:'Test'}}),'direct-store-result'),
+      ()=>GET(base.docs,'/tools/database-stats','doc-stats-result'),
+      ()=>POST(base.orch,'/api/search', JSON.stringify({query:'test',limit:3}),'search-result'),
+      ()=>POST(base.docs,'/tools/search-documents', JSON.stringify({query:'test',max_results:3}),'direct-search-result'),
+      ()=>GET(base.search,'/health','search-service-result'),
+      ()=>GET(base.llm,'/health','llm-health-result'),
+      ()=>POST(base.orch,'/api/analyze', JSON.stringify({type:'test',content:'diagnostic test'}),'analyze-result'),
+      ()=>POST(base.orch,'/api/analyze', JSON.stringify({query:'test query',documents:[]}), 'rag-result'),
+      ()=>GET(base.graphrag,'/health','graphrag-health-result'),
+      ()=>POST(base.graphrag,'/service-diagnostics', JSON.stringify({source:'test_documents'}),'build-graph-result'),
+      ()=>POST(base.graphrag,'/service-diagnostics', JSON.stringify({entity:'test'}),'relationships-result'),
+      ()=>GET(base.docs,'/health','docs-connectivity'),
+      ()=>GET(base.search,'/health','search-connectivity'),
+      ()=>GET(base.llm,'/health','llm-connectivity'),
+      ()=>GET(base.graphrag,'/health','graphrag-connectivity')
+    ];
+    for(let i=0;i<Q.length;i++){ try{ await Q[i](); }catch{} await new Promise(r=>setTimeout(r,350)); }
+  }
+
+  console.log('Diagnostics wired. Using bases:', base);
+})();
+</script>

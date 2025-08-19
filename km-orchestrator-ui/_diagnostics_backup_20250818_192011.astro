@@ -1,0 +1,680 @@
+﻿---
+import Layout from "../../layouts/Layout.astro";
+
+// Production URLs for all your working services
+const ORCH  = 'https://km-orchestrator.azurewebsites.net';
+const DOCS  = 'https://km-mcp-sql-docs.azurewebsites.net';
+const SRCH  = 'https://km-mcp-search.azurewebsites.net';
+const LLM   = 'https://km-mcp-llm.azurewebsites.net';
+const GRAPH = 'https://km-mcp-graphrag.azurewebsites.net';
+---
+
+<Layout title="KM Orchestrator Diagnostics">
+  <div class="diag-root"
+       id="diag-root"
+       data-orch={ORCH}
+       data-docs={DOCS}
+       data-search={SRCH}
+       data-llm={LLM}
+       data-graphrag={GRAPH}>
+
+    <div class="container">
+      <div class="header">
+        <h1>🔧 KM Orchestrator System Diagnostics</h1>
+        <p>Comprehensive testing of all services and endpoints</p>
+        <div class="timestamp" id="last-updated">Last updated: <span id="timestamp">Not run yet</span></div>
+      </div>
+
+      <div class="controls">
+        <button class="refresh-all" data-cmd="run-all">🚀 Run All Diagnostics</button>
+        <button class="run-health" data-cmd="run-health">💓 Health Checks Only</button>
+        <button class="run-apis" data-cmd="run-apis">🎯 API Tests Only</button>
+        <button class="clear-all" data-cmd="clear-all">🧹 Clear Results</button>
+      </div>
+
+      <div class="summary-section">
+        <h2>📈 System Health Summary</h2>
+        <div class="summary-grid">
+          <div class="summary-stat">
+            <div class="number working" id="workingCount">-</div>
+            <div class="label">✅ Working</div>
+          </div>
+          <div class="summary-stat">
+            <div class="number broken" id="brokenCount">-</div>
+            <div class="label">❌ Broken</div>
+          </div>
+          <div class="summary-stat">
+            <div class="number partial" id="partialCount">-</div>
+            <div class="label">⚠️ Partial</div>
+          </div>
+          <div class="summary-stat">
+            <div class="number" id="totalCount">-</div>
+            <div class="label">📊 Total Tests</div>
+          </div>
+          <div class="summary-stat">
+            <div class="number" id="responseTime">-</div>
+            <div class="label">⚡ Avg Response</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="diagnostic-grid">
+        <!-- Service Health Checks -->
+        <div class="diagnostic-card">
+          <h3>💓 Service Health Checks</h3>
+          
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">GET /health</div>
+              <div class="endpoint-desc">Orchestrator health check</div>
+            </div>
+            <button class="test-button" data-cmd="test" data-url="https://km-orchestrator.azurewebsites.net/health" data-target="orch-health">Test Orchestrator</button>
+            <div class="test-response" id="orch-health">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">GET /health</div>
+              <div class="endpoint-desc">SQL Docs service health</div>
+            </div>
+            <button class="test-button" data-cmd="test" data-url="https://km-mcp-sql-docs.azurewebsites.net/health" data-target="docs-health">Test Docs Service</button>
+            <div class="test-response" id="docs-health">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">GET /health</div>
+              <div class="endpoint-desc">Search service health</div>
+            </div>
+            <button class="test-button" data-cmd="test" data-url="https://km-mcp-search.azurewebsites.net/health" data-target="search-health">Test Search Service</button>
+            <div class="test-response" id="search-health">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">GET /health</div>
+              <div class="endpoint-desc">LLM service health</div>
+            </div>
+            <button class="test-button" data-cmd="test" data-url="https://km-mcp-llm.azurewebsites.net/health" data-target="llm-health">Test LLM Service</button>
+            <div class="test-response" id="llm-health">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">GET /health</div>
+              <div class="endpoint-desc">GraphRAG service health</div>
+            </div>
+            <button class="test-button" data-cmd="test" data-url="https://km-mcp-graphrag.azurewebsites.net/health" data-target="graphrag-health">Test GraphRAG Service</button>
+            <div class="test-response" id="graphrag-health">Click test to check...</div>
+          </div>
+        </div>
+
+        <!-- Orchestrator Core API -->
+        <div class="diagnostic-card">
+          <h3>🎯 Orchestrator Core API</h3>
+          
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">GET /services/status</div>
+              <div class="endpoint-desc">Get all service statuses</div>
+            </div>
+            <button class="test-button" data-cmd="test" data-url="https://km-orchestrator.azurewebsites.net/services/status" data-target="services-status">Test Service Status</button>
+            <div class="test-response" id="services-status">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /api/chat</div>
+              <div class="endpoint-desc">Chat with knowledge base</div>
+            </div>
+            <button class="test-button" data-cmd="post" 
+                    data-url="https://km-orchestrator.azurewebsites.net/api/chat" 
+                    data-body='{"message":"What services are available in this knowledge management system?"}' 
+                    data-target="chat-test">Test Chat API</button>
+            <div class="test-response" id="chat-test">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /api/search</div>
+              <div class="endpoint-desc">Search documents</div>
+            </div>
+            <button class="test-button" data-cmd="post" 
+                    data-url="https://km-orchestrator.azurewebsites.net/api/search" 
+                    data-body='{"query":"knowledge management","limit":5}' 
+                    data-target="search-test">Test Search API</button>
+            <div class="test-response" id="search-test">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /api/upload</div>
+              <div class="endpoint-desc">Upload document</div>
+            </div>
+            <button class="test-button" data-cmd="post" 
+                    data-url="https://km-orchestrator.azurewebsites.net/api/upload" 
+                    data-body='{"title":"Diagnostic Test Document","content":"This is a test document created by the diagnostics dashboard.","classification":"Test","metadata":{"source":"diagnostics","created_at":"' + new Date().toISOString() + '"}}' 
+                    data-target="upload-test">Test Upload API</button>
+            <div class="test-response" id="upload-test">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /api/analyze</div>
+              <div class="endpoint-desc">Analyze content</div>
+            </div>
+            <button class="test-button" data-cmd="post" 
+                    data-url="https://km-orchestrator.azurewebsites.net/api/analyze" 
+                    data-body='{"content":"This is sample content for analysis.","type":"text","options":{"extract_entities":true,"sentiment":true}}' 
+                    data-target="analyze-test">Test Analyze API</button>
+            <div class="test-response" id="analyze-test">Click test to check...</div>
+          </div>
+        </div>
+
+        <!-- Document Service Direct Tests -->
+        <div class="diagnostic-card">
+          <h3>📚 Document Service (SQL Docs)</h3>
+          
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /tools/store-document</div>
+              <div class="endpoint-desc">Store document directly</div>
+            </div>
+            <button class="test-button" data-cmd="post" 
+                    data-url="https://km-mcp-sql-docs.azurewebsites.net/tools/store-document" 
+                    data-body='{"title":"Direct Store Test","content":"Testing direct document storage.","file_type":"text","metadata":{"source":"diagnostics","test":true}}' 
+                    data-target="direct-store">Test Direct Store</button>
+            <div class="test-response" id="direct-store">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /tools/search-documents</div>
+              <div class="endpoint-desc">Search documents directly</div>
+            </div>
+            <button class="test-button" data-cmd="post" 
+                    data-url="https://km-mcp-sql-docs.azurewebsites.net/tools/search-documents" 
+                    data-body='{"query":"test","max_results":5,"include_content":true}' 
+                    data-target="direct-search">Test Direct Search</button>
+            <div class="test-response" id="direct-search">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">GET /tools/database-stats</div>
+              <div class="endpoint-desc">Get database statistics</div>
+            </div>
+            <button class="test-button" data-cmd="test" data-url="https://km-mcp-sql-docs.azurewebsites.net/tools/database-stats" data-target="db-stats">Test DB Stats</button>
+            <div class="test-response" id="db-stats">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">GET /tools/list-documents</div>
+              <div class="endpoint-desc">List recent documents</div>
+            </div>
+            <button class="test-button" data-cmd="test" data-url="https://km-mcp-sql-docs.azurewebsites.net/tools/list-documents?limit=10" data-target="list-docs">Test List Documents</button>
+            <div class="test-response" id="list-docs">Click test to check...</div>
+          </div>
+        </div>
+
+        <!-- Search Service Tests -->
+        <div class="diagnostic-card">
+          <h3>🔍 Search Service</h3>
+          
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">GET /tools</div>
+              <div class="endpoint-desc">List available search tools</div>
+            </div>
+            <button class="test-button" data-cmd="test" data-url="https://km-mcp-search.azurewebsites.net/tools" data-target="search-tools">Test Search Tools</button>
+            <div class="test-response" id="search-tools">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /tools/vector-search</div>
+              <div class="endpoint-desc">Vector similarity search</div>
+            </div>
+            <button class="test-button" data-cmd="post" 
+                    data-url="https://km-mcp-search.azurewebsites.net/tools/vector-search" 
+                    data-body='{"query":"knowledge management systems","top_k":5}' 
+                    data-target="vector-search">Test Vector Search</button>
+            <div class="test-response" id="vector-search">Click test to check...</div>
+          </div>
+        </div>
+
+        <!-- LLM Service Tests -->
+        <div class="diagnostic-card">
+          <h3>🤖 LLM Service</h3>
+          
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">GET /tools</div>
+              <div class="endpoint-desc">List available LLM tools</div>
+            </div>
+            <button class="test-button" data-cmd="test" data-url="https://km-mcp-llm.azurewebsites.net/tools" data-target="llm-tools">Test LLM Tools</button>
+            <div class="test-response" id="llm-tools">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /tools/generate</div>
+              <div class="endpoint-desc">Generate text with LLM</div>
+            </div>
+            <button class="test-button" data-cmd="post" 
+                    data-url="https://km-mcp-llm.azurewebsites.net/tools/generate" 
+                    data-body='{"prompt":"Explain the benefits of knowledge management systems in 2 sentences.","max_tokens":100}' 
+                    data-target="llm-generate">Test LLM Generate</button>
+            <div class="test-response" id="llm-generate">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /tools/analyze-text</div>
+              <div class="endpoint-desc">Analyze text content</div>
+            </div>
+            <button class="test-button" data-cmd="post" 
+                    data-url="https://km-mcp-llm.azurewebsites.net/tools/analyze-text" 
+                    data-body='{"text":"Knowledge management systems help organizations capture, store, and share information effectively.","analysis_types":["entities","sentiment","keywords"]}' 
+                    data-target="llm-analyze">Test Text Analysis</button>
+            <div class="test-response" id="llm-analyze">Click test to check...</div>
+          </div>
+        </div>
+
+        <!-- GraphRAG Service Tests -->
+        <div class="diagnostic-card">
+          <h3>🕸️ GraphRAG Service</h3>
+          
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">GET /tools</div>
+              <div class="endpoint-desc">List available GraphRAG tools</div>
+            </div>
+            <button class="test-button" data-cmd="test" data-url="https://km-mcp-graphrag.azurewebsites.net/tools" data-target="graph-tools">Test GraphRAG Tools</button>
+            <div class="test-response" id="graph-tools">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /tools/build-graph</div>
+              <div class="endpoint-desc">Build knowledge graph</div>
+            </div>
+            <button class="test-button" data-cmd="post" 
+                    data-url="https://km-mcp-graphrag.azurewebsites.net/tools/build-graph" 
+                    data-body='{"source":"documents","incremental":true}' 
+                    data-target="build-graph">Test Build Graph</button>
+            <div class="test-response" id="build-graph">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /tools/query-graph</div>
+              <div class="endpoint-desc">Query knowledge graph</div>
+            </div>
+            <button class="test-button" data-cmd="post" 
+                    data-url="https://km-mcp-graphrag.azurewebsites.net/tools/query-graph" 
+                    data-body='{"query":"knowledge management","relationship_depth":2,"max_results":10}' 
+                    data-target="query-graph">Test Graph Query</button>
+            <div class="test-response" id="query-graph">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">GET /tools/graph-stats</div>
+              <div class="endpoint-desc">Get graph statistics</div>
+            </div>
+            <button class="test-button" data-cmd="test" data-url="https://km-mcp-graphrag.azurewebsites.net/tools/graph-stats" data-target="graph-stats">Test Graph Stats</button>
+            <div class="test-response" id="graph-stats">Click test to check...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Indicator -->
+      <div class="progress-section" id="progress-section" style="display: none;">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-text" id="progress-text">Running diagnostics...</div>
+      </div>
+
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .diag-root * { margin: 0; padding: 0; box-sizing: border-box; }
+  .diag-root { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+  .container { max-width: 1600px; margin: 0 auto; }
+  .header { background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 30px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); }
+  .header h1 { color: #333; font-size: 2.5rem; margin-bottom: 10px; }
+  .header p { color: #666; font-size: 1.1rem; }
+  .timestamp { margin-top: 15px; color: #888; font-size: 0.9rem; }
+  .controls { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+  .refresh-all, .run-health, .run-apis, .clear-all { background: #667eea; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.3s ease; }
+  .refresh-all:hover, .run-health:hover, .run-apis:hover { background: #5a67d8; }
+  .run-health { background: #38a169; }
+  .run-health:hover { background: #2f855a; }
+  .run-apis { background: #d69e2e; }
+  .run-apis:hover { background: #b7791f; }
+  .clear-all { background: #f56565; }
+  .clear-all:hover { background: #e53e3e; }
+  .diagnostic-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px; margin-bottom: 30px; }
+  .diagnostic-card { background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 25px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); }
+  .diagnostic-card h3 { color: #333; font-size: 1.2rem; margin-bottom: 20px; border-bottom: 2px solid #edf2f7; padding-bottom: 10px; }
+  .endpoint-test { margin-bottom: 15px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; transition: all 0.3s ease; }
+  .endpoint-test:hover { border-color: #cbd5e0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+  .endpoint-info { margin-bottom: 8px; }
+  .endpoint-path { font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-weight: bold; font-size: 0.85rem; color: #2d3748; }
+  .endpoint-desc { font-size: 0.8rem; color: #718096; font-style: italic; margin-top: 2px; }
+  .test-button { background: #667eea; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.3s ease; }
+  .test-button:hover { background: #5a67d8; }
+  .test-button:disabled { background: #a0aec0; cursor: not-allowed; }
+  .test-button.working { background: #10b981; }
+  .test-button.broken { background: #ef4444; }
+  .test-button.partial { background: #f59e0b; }
+  .test-button.testing { background: #805ad5; animation: pulse 1.5s infinite; }
+  .test-response { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-top: 8px; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-size: 0.75rem; max-height: 150px; overflow-y: auto; white-space: pre-wrap; line-height: 1.3; }
+  .test-response.success { border-color: #10b981; background: #f0fff4; }
+  .test-response.error { border-color: #ef4444; background: #fef2f2; }
+  .test-response.warning { border-color: #f59e0b; background: #fffbeb; }
+  .summary-section { background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 25px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); }
+  .summary-section h2 { color: #333; margin-bottom: 20px; font-size: 1.5rem; }
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+  .summary-stat { text-align: center; padding: 18px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; transition: all 0.3s ease; }
+  .summary-stat:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+  .summary-stat .number { font-size: 2.2rem; font-weight: bold; margin-bottom: 6px; }
+  .summary-stat .label { color: #666; font-size: 0.85rem; font-weight: 600; }
+  .number.working { color: #10b981; }
+  .number.broken { color: #ef4444; }
+  .number.partial { color: #f59e0b; }
+  .progress-section { background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); }
+  .progress-bar { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); width: 0%; transition: width 0.3s ease; }
+  .progress-text { text-align: center; color: #666; font-size: 0.9rem; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+  @media (max-width: 768px) { .diagnostic-grid { grid-template-columns: 1fr; } .summary-grid { grid-template-columns: repeat(2, 1fr); } .controls { justify-content: center; } }
+</style>
+
+<script is:inline>
+(function() {
+  let testResults = {};
+  let responseTimes = [];
+  let totalTests = 0;
+  let completedTests = 0;
+  
+  function setText(id, txt) { 
+    const el = document.getElementById(id); 
+    if (el) el.textContent = txt; 
+  }
+  
+  function mark(id, status, responseTime = null) {
+    testResults[id] = status;
+    if (responseTime !== null) {
+      responseTimes.push(responseTime);
+    }
+    
+    const btns = document.querySelectorAll(`[data-target="${id}"]`);
+    btns.forEach(btn => {
+      btn.className = `test-button ${status}`;
+      btn.disabled = false;
+    });
+    
+    const responseEl = document.getElementById(id);
+    if (responseEl) {
+      responseEl.className = `test-response ${status === 'working' ? 'success' : status === 'broken' ? 'error' : 'warning'}`;
+    }
+    
+    updateSummary();
+  }
+  
+  function updateSummary() {
+    const vals = Object.values(testResults);
+    const working = vals.filter(v => v === 'working').length;
+    const broken = vals.filter(v => v === 'broken').length;
+    const partial = vals.filter(v => v === 'partial').length;
+    const total = vals.length;
+    
+    setText('workingCount', working);
+    setText('brokenCount', broken);
+    setText('partialCount', partial);
+    setText('totalCount', total);
+    
+    if (responseTimes.length > 0) {
+      const avgTime = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
+      setText('responseTime', `${avgTime.toFixed(0)}ms`);
+    }
+    
+    if (totalTests > 0) {
+      const progress = (completedTests / totalTests) * 100;
+      const progressFill = document.getElementById('progress-fill');
+      if (progressFill) {
+        progressFill.style.width = `${progress}%`;
+      }
+      setText('progress-text', `${completedTests}/${totalTests} tests completed`);
+    }
+    
+    setText('timestamp', new Date().toLocaleString());
+  }
+  
+  async function testService(url, target, options = {}) {
+    const startTime = performance.now();
+    const btn = document.querySelector(`[data-target="${target}"]`);
+    
+    if (btn) {
+      btn.className = 'test-button testing';
+      btn.disabled = true;
+    }
+    
+    setText(target, '🔄 Testing...');
+    
+    try {
+      const response = await fetch(url, {
+        method: options.method || 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: options.body || undefined,
+        mode: 'cors'
+      });
+      
+      const endTime = performance.now();
+      const responseTime = Math.round(endTime - startTime);
+      
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        data = await response.text();
+      }
+      
+      const result = {
+        status: response.status,
+        statusText: response.statusText,
+        responseTime: `${responseTime}ms`,
+        data: data
+      };
+      
+      setText(target, JSON.stringify(result, null, 2));
+      mark(target, response.ok ? 'working' : (response.status >= 400 && response.status < 500 ? 'partial' : 'broken'), responseTime);
+      
+    } catch (error) {
+      const endTime = performance.now();
+      const responseTime = Math.round(endTime - startTime);
+      
+      if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+        setText(target, `CORS Issue: ${error.message}\n\nNote: Service may be working but needs CORS headers for browser access.`);
+        mark(target, 'partial', responseTime);
+      } else {
+        setText(target, `Error: ${error.message}`);
+        mark(target, 'broken', responseTime);
+      }
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+      }
+      completedTests++;
+      updateSummary();
+    }
+  }
+  
+  // Event handler
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('[data-cmd]');
+    if (!btn) return;
+    
+    const cmd = btn.getAttribute('data-cmd');
+    const url = btn.getAttribute('data-url');
+    const target = btn.getAttribute('data-target');
+    const body = btn.getAttribute('data-body');
+    
+    if (cmd === 'test') {
+      testService(url, target);
+    } else if (cmd === 'post') {
+      testService(url, target, { method: 'POST', body });
+    } else if (cmd === 'run-all') {
+      runAllTests();
+    } else if (cmd === 'run-health') {
+      runHealthTests();
+    } else if (cmd === 'run-apis') {
+      runApiTests();
+    } else if (cmd === 'clear-all') {
+      clearAllResults();
+    }
+  });
+  
+  async function runHealthTests() {
+    console.log('💓 Running health checks...');
+    showProgress();
+    
+    const healthTests = [
+      () => testService('https://km-orchestrator.azurewebsites.net/health', 'orch-health'),
+      () => testService('https://km-mcp-sql-docs.azurewebsites.net/health', 'docs-health'),
+      () => testService('https://km-mcp-search.azurewebsites.net/health', 'search-health'),
+      () => testService('https://km-mcp-llm.azurewebsites.net/health', 'llm-health'),
+      () => testService('https://km-mcp-graphrag.azurewebsites.net/health', 'graphrag-health')
+    ];
+    
+    totalTests = healthTests.length;
+    completedTests = 0;
+    
+    for (let i = 0; i < healthTests.length; i++) {
+      await healthTests[i]();
+      await delay(300);
+    }
+    
+    hideProgress();
+  }
+  
+  async function runApiTests() {
+    console.log('🎯 Running API tests...');
+    showProgress();
+    
+    const apiTests = [
+      () => testService('https://km-orchestrator.azurewebsites.net/services/status', 'services-status'),
+      () => testService('https://km-orchestrator.azurewebsites.net/api/chat', 'chat-test', { 
+        method: 'POST', 
+        body: JSON.stringify({message: 'What services are available in this knowledge management system?'}) 
+      }),
+      () => testService('https://km-orchestrator.azurewebsites.net/api/search', 'search-test', { 
+        method: 'POST', 
+        body: JSON.stringify({query: 'knowledge management', limit: 5}) 
+      }),
+      () => testService('https://km-orchestrator.azurewebsites.net/api/upload', 'upload-test', { 
+        method: 'POST', 
+        body: JSON.stringify({
+          title: 'Diagnostic Test Document',
+          content: 'This is a test document created by the diagnostics dashboard.',
+          classification: 'Test',
+          metadata: {source: 'diagnostics', created_at: new Date().toISOString()}
+        }) 
+      })
+    ];
+    
+    totalTests = apiTests.length;
+    completedTests = 0;
+    
+    for (let i = 0; i < apiTests.length; i++) {
+      await apiTests[i]();
+      await delay(500);
+    }
+    
+    hideProgress();
+  }
+  
+  async function runAllTests() {
+    console.log('🚀 Running comprehensive diagnostics...');
+    showProgress();
+    
+    // Get all test buttons and run them
+    const allTests = document.querySelectorAll('[data-cmd="test"], [data-cmd="post"]');
+    totalTests = allTests.length;
+    completedTests = 0;
+    
+    for (const testBtn of allTests) {
+      const url = testBtn.getAttribute('data-url');
+      const target = testBtn.getAttribute('data-target');
+      const body = testBtn.getAttribute('data-body');
+      const method = testBtn.getAttribute('data-cmd');
+      
+      if (method === 'post') {
+        await testService(url, target, { method: 'POST', body });
+      } else {
+        await testService(url, target);
+      }
+      
+      await delay(250);
+    }
+    
+    hideProgress();
+  }
+  
+  function clearAllResults() {
+    testResults = {};
+    responseTimes = [];
+    totalTests = 0;
+    completedTests = 0;
+    
+    document.querySelectorAll('.test-response').forEach(el => {
+      el.textContent = 'Click test to check...';
+      el.className = 'test-response';
+    });
+    
+    document.querySelectorAll('.test-button').forEach(btn => {
+      if (btn.getAttribute('data-cmd') === 'test' || btn.getAttribute('data-cmd') === 'post') {
+        btn.className = 'test-button';
+        btn.disabled = false;
+      }
+    });
+    
+    updateSummary();
+  }
+  
+  function showProgress() {
+    const progressSection = document.getElementById('progress-section');
+    if (progressSection) {
+      progressSection.style.display = 'block';
+    }
+  }
+  
+  function hideProgress() {
+    setTimeout(() => {
+      const progressSection = document.getElementById('progress-section');
+      if (progressSection) {
+        progressSection.style.display = 'none';
+      }
+      totalTests = 0;
+      completedTests = 0;
+    }, 2000);
+  }
+  
+  function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+  
+  console.log('🎯 Comprehensive KM Orchestrator Diagnostics ready');
+  updateSummary();
+})();
+</script>

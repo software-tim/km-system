@@ -1,0 +1,1045 @@
+﻿---
+import Layout from "../../layouts/Layout.astro";
+
+// Environment variables with fallbacks for local development
+const ORCH  = import.meta.env.PUBLIC_ORCH_BASE || 'https://km-orchestrator.azurewebsites.net';
+const DOCS  = import.meta.env.PUBLIC_DOCS_BASE || 'https://km-mcp-sql-docs.azurewebsites.net';
+const SRCH  = import.meta.env.PUBLIC_SEARCH_BASE || 'https://km-mcp-search.azurewebsites.net';
+const LLM   = import.meta.env.PUBLIC_LLM_BASE || 'https://km-mcp-llm.azurewebsites.net';
+const GRAPH = import.meta.env.PUBLIC_GRAPHRAG_BASE || 'https://km-mcp-graphrag.azurewebsites.net';
+---
+
+<Layout title="KM Orchestrator Diagnostics">
+  <div class="diag-root"
+       id="diag-root"
+       data-orch={ORCH}
+       data-docs={DOCS}
+       data-search={SRCH}
+       data-llm={LLM}
+       data-graphrag={GRAPH}>
+
+    <div class="container">
+      <div class="header">
+        <h1>🔧 KM Orchestrator System Diagnostics</h1>
+        <p>Comprehensive testing and monitoring of all orchestrator capabilities and underlying services</p>
+        <div class="timestamp" id="last-updated">Last updated: <span id="timestamp">Not run yet</span></div>
+      </div>
+
+      <div class="controls">
+        <button class="refresh-all" data-cmd="run-all">🚀 Run All Diagnostics</button>
+        <button class="clear-all" data-cmd="clear-all">🧹 Clear Results</button>
+        <button class="export-results" data-cmd="export">📊 Export Results</button>
+      </div>
+
+      <div class="summary-section">
+        <h2>📈 System Health Summary</h2>
+        <div class="summary-grid">
+          <div class="summary-stat">
+            <div class="number working" id="workingCount">-</div>
+            <div class="label">✅ Working</div>
+          </div>
+          <div class="summary-stat">
+            <div class="number broken" id="brokenCount">-</div>
+            <div class="label">❌ Broken</div>
+          </div>
+          <div class="summary-stat">
+            <div class="number partial" id="partialCount">-</div>
+            <div class="label">⚠️ Partial</div>
+          </div>
+          <div class="summary-stat">
+            <div class="number" id="totalCount">-</div>
+            <div class="label">📊 Total Tests</div>
+          </div>
+          <div class="summary-stat">
+            <div class="number" id="responseTime">-</div>
+            <div class="label">⚡ Avg Response</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="diagnostic-grid">
+        <!-- Orchestrator Core -->
+        <div class="diagnostic-card">
+          <h3>🎯 Orchestrator Core Functions</h3>
+          
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">GET /health</div>
+              <div class="endpoint-desc">Basic orchestrator health check</div>
+            </div>
+            <button class="test-button" data-cmd="orch-get" data-path="/health" data-target="health-result">Test Health</button>
+            <div class="test-response" id="health-result">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">GET /services/status</div>
+              <div class="endpoint-desc">Check status of all connected services</div>
+            </div>
+            <button class="test-button" data-cmd="orch-get" data-path="/services/status" data-target="services-result">Test Services</button>
+            <div class="test-response" id="services-result">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /api/chat</div>
+              <div class="endpoint-desc">Test chat function with orchestrated services</div>
+            </div>
+            <button class="test-button" data-cmd="orch-post" data-path="/api/chat" 
+                    data-body='{"message":"test query for diagnostics","context":"system_test"}' 
+                    data-target="orchestrator-chat-result">Test Chat</button>
+            <div class="test-response" id="orchestrator-chat-result">Click test to check...</div>
+          </div>
+        </div>
+
+        <!-- Document Management -->
+        <div class="diagnostic-card">
+          <h3>📚 Document Management</h3>
+          
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /api/upload</div>
+              <div class="endpoint-desc">Upload document through orchestrator</div>
+            </div>
+            <button class="test-button" data-cmd="orch-post" data-path="/api/upload"
+                    data-body='{"title":"Diagnostic Test Document","content":"This is a test document for diagnostic purposes.","classification":"Test","entities":"diagnostics, test","metadata":{"source":"diagnostics"}}'
+                    data-target="upload-result">Test Upload</button>
+            <div class="test-response" id="upload-result">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /tools/store-document</div>
+              <div class="endpoint-desc">Direct store to document service</div>
+            </div>
+            <button class="test-button" data-cmd="docs-post" data-path="/tools/store-document"
+                    data-body='{"title":"Direct Test Document","content":"This is a direct test to the document service.","file_type":"text","metadata":{"source":"dashboard_test","classification":"Test"}}'
+                    data-target="direct-store-result">Test Direct Store</button>
+            <div class="test-response" id="direct-store-result">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">GET /tools/database-stats</div>
+              <div class="endpoint-desc">Get document database statistics</div>
+            </div>
+            <button class="test-button" data-cmd="docs-get" data-path="/tools/database-stats" data-target="doc-stats-result">Test Stats</button>
+            <div class="test-response" id="doc-stats-result">Click test to check...</div>
+          </div>
+        </div>
+
+        <!-- Search Functions -->
+        <div class="diagnostic-card">
+          <h3>🔍 Search Functions</h3>
+          
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /api/search</div>
+              <div class="endpoint-desc">Search through orchestrator</div>
+            </div>
+            <button class="test-button" data-cmd="orch-post" data-path="/api/search" 
+                    data-body='{"query":"test diagnostic","limit":3,"include_metadata":true}' 
+                    data-target="search-result">Test Search</button>
+            <div class="test-response" id="search-result">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /tools/search-documents</div>
+              <div class="endpoint-desc">Direct search to document service</div>
+            </div>
+            <button class="test-button" data-cmd="docs-post" data-path="/tools/search-documents" 
+                    data-body='{"query":"test","max_results":3,"include_content":true}' 
+                    data-target="direct-search-result">Test Direct Search</button>
+            <div class="test-response" id="direct-search-result">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">GET /health</div>
+              <div class="endpoint-desc">Search service health</div>
+            </div>
+            <button class="test-button" data-cmd="search-get" data-path="/health" data-target="search-service-result">Test Search Service</button>
+            <div class="test-response" id="search-service-result">Click test to check...</div>
+          </div>
+        </div>
+
+        <!-- AI & LLM -->
+        <div class="diagnostic-card">
+          <h3>🤖 AI & LLM Functions</h3>
+          
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">GET /health</div>
+              <div class="endpoint-desc">LLM service health check</div>
+            </div>
+            <button class="test-button" data-cmd="llm-get" data-path="/health" data-target="llm-health-result">Test LLM Health</button>
+            <div class="test-response" id="llm-health-result">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /api/analyze</div>
+              <div class="endpoint-desc">Test analysis endpoint</div>
+            </div>
+            <button class="test-button" data-cmd="orch-post" data-path="/api/analyze" 
+                    data-body='{"type":"diagnostic_test","content":"diagnostic test content","options":{"include_entities":true}}' 
+                    data-target="analyze-result">Test Analysis</button>
+            <div class="test-response" id="analyze-result">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /api/rag</div>
+              <div class="endpoint-desc">Test RAG pipeline</div>
+            </div>
+            <button class="test-button" data-cmd="orch-post" data-path="/api/rag" 
+                    data-body='{"query":"test diagnostic query","context_limit":5,"include_sources":true}' 
+                    data-target="rag-result">Test RAG</button>
+            <div class="test-response" id="rag-result">Click test to check...</div>
+          </div>
+        </div>
+
+        <!-- Knowledge Graphs -->
+        <div class="diagnostic-card">
+          <h3>🕸️ Knowledge Graphs</h3>
+          
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">GET /health</div>
+              <div class="endpoint-desc">GraphRAG service health</div>
+            </div>
+            <button class="test-button" data-cmd="graphrag-get" data-path="/health" data-target="graphrag-health-result">Test GraphRAG Health</button>
+            <div class="test-response" id="graphrag-health-result">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /api/graph/build</div>
+              <div class="endpoint-desc">Build knowledge graph</div>
+            </div>
+            <button class="test-button" data-cmd="orch-post" data-path="/api/graph/build" 
+                    data-body='{"source":"diagnostic_documents","refresh":true}' 
+                    data-target="build-graph-result">Test Build Graph</button>
+            <div class="test-response" id="build-graph-result">Click test to check...</div>
+          </div>
+
+          <div class="endpoint-test">
+            <div class="endpoint-info">
+              <div class="endpoint-path">POST /api/graph/query</div>
+              <div class="endpoint-desc">Query knowledge graph</div>
+            </div>
+            <button class="test-button" data-cmd="orch-post" data-path="/api/graph/query" 
+                    data-body='{"entity":"test","relationship_depth":2}' 
+                    data-target="relationships-result">Test Graph Query</button>
+            <div class="test-response" id="relationships-result">Click test to check...</div>
+          </div>
+        </div>
+
+        <!-- Service Connectivity -->
+        <div class="diagnostic-card">
+          <h3>🔗 Service Connectivity</h3>
+          
+          <div class="service-health">
+            <div class="service-info">
+              <div class="service-name">📄 km-mcp-sql-docs</div>
+              <div class="service-url">{DOCS}</div>
+            </div>
+            <button class="test-button" data-cmd="docs-get" data-path="/health" data-target="docs-connectivity">Test</button>
+            <div class="test-response compact" id="docs-connectivity">Not tested</div>
+          </div>
+
+          <div class="service-health">
+            <div class="service-info">
+              <div class="service-name">🔍 km-mcp-search</div>
+              <div class="service-url">{SRCH}</div>
+            </div>
+            <button class="test-button" data-cmd="search-get" data-path="/health" data-target="search-connectivity">Test</button>
+            <div class="test-response compact" id="search-connectivity">Not tested</div>
+          </div>
+
+          <div class="service-health">
+            <div class="service-info">
+              <div class="service-name">🤖 km-mcp-llm</div>
+              <div class="service-url">{LLM}</div>
+            </div>
+            <button class="test-button" data-cmd="llm-get" data-path="/health" data-target="llm-connectivity">Test</button>
+            <div class="test-response compact" id="llm-connectivity">Not tested</div>
+          </div>
+
+          <div class="service-health">
+            <div class="service-info">
+              <div class="service-name">🕸️ km-mcp-graphrag</div>
+              <div class="service-url">{GRAPH}</div>
+            </div>
+            <button class="test-button" data-cmd="graphrag-get" data-path="/health" data-target="graphrag-connectivity">Test</button>
+            <div class="test-response compact" id="graphrag-connectivity">Not tested</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Indicator -->
+      <div class="progress-section" id="progress-section" style="display: none;">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-text" id="progress-text">Running diagnostics...</div>
+      </div>
+
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .diag-root * { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+  }
+  
+  .diag-root { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+    min-height: 100vh; 
+    padding: 20px;
+  }
+  
+  .container { 
+    max-width: 1600px; 
+    margin: 0 auto; 
+  }
+  
+  .header { 
+    background: rgba(255, 255, 255, 0.95); 
+    border-radius: 15px; 
+    padding: 30px; 
+    margin-bottom: 20px; 
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); 
+    backdrop-filter: blur(10px);
+  }
+  
+  .header h1 { 
+    color: #333; 
+    font-size: 2.5rem; 
+    margin-bottom: 10px; 
+  }
+  
+  .header p { 
+    color: #666; 
+    font-size: 1.1rem; 
+  }
+  
+  .timestamp { 
+    margin-top: 15px; 
+    color: #888; 
+    font-size: 0.9rem; 
+  }
+  
+  .controls { 
+    display: flex; 
+    gap: 15px; 
+    margin-bottom: 20px; 
+    flex-wrap: wrap;
+  }
+  
+  .refresh-all, .clear-all, .export-results { 
+    background: #667eea; 
+    color: #fff; 
+    border: none; 
+    padding: 12px 24px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    font-size: 1rem; 
+    font-weight: 600; 
+    transition: all 0.3s ease;
+  }
+  
+  .refresh-all:hover { background: #5a67d8; }
+  .clear-all { background: #f56565; }
+  .clear-all:hover { background: #e53e3e; }
+  .export-results { background: #38a169; }
+  .export-results:hover { background: #2f855a; }
+  
+  .diagnostic-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); 
+    gap: 20px; 
+    margin-bottom: 30px; 
+  }
+  
+  .diagnostic-card { 
+    background: rgba(255, 255, 255, 0.95); 
+    border-radius: 15px; 
+    padding: 25px; 
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); 
+    backdrop-filter: blur(10px);
+  }
+  
+  .diagnostic-card h3 {
+    color: #333;
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #edf2f7;
+    padding-bottom: 10px;
+  }
+  
+  .endpoint-test { 
+    margin-bottom: 20px; 
+    padding: 15px; 
+    border: 1px solid #e2e8f0; 
+    border-radius: 8px; 
+    transition: all 0.3s ease;
+  }
+  
+  .endpoint-test:hover {
+    border-color: #cbd5e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  .endpoint-info {
+    margin-bottom: 10px;
+  }
+  
+  .endpoint-path { 
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace; 
+    font-weight: bold; 
+    font-size: 0.9rem;
+    color: #2d3748;
+    margin-bottom: 4px;
+  }
+  
+  .endpoint-desc {
+    font-size: 0.85rem;
+    color: #718096;
+    font-style: italic;
+  }
+  
+  .test-button { 
+    background: #667eea; 
+    color: #fff; 
+    border: none; 
+    padding: 8px 16px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    margin: 5px 5px 5px 0; 
+    font-size: 0.9rem; 
+    transition: all 0.3s ease;
+  }
+  
+  .test-button:hover { background: #5a67d8; }
+  .test-button:disabled { background: #a0aec0; cursor: not-allowed; }
+  .test-button.working { background: #10b981; }
+  .test-button.broken { background: #ef4444; }
+  .test-button.partial { background: #f59e0b; }
+  .test-button.testing { background: #805ad5; }
+  
+  .test-response { 
+    background: #f8fafc; 
+    border: 1px solid #e2e8f0; 
+    border-radius: 8px; 
+    padding: 12px; 
+    margin-top: 10px; 
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace; 
+    font-size: 0.8rem; 
+    max-height: 200px; 
+    overflow-y: auto; 
+    white-space: pre-wrap;
+    line-height: 1.4;
+  }
+  
+  .test-response.compact {
+    max-height: 100px;
+    font-size: 0.75rem;
+  }
+  
+  .summary-section { 
+    background: rgba(255, 255, 255, 0.95); 
+    border-radius: 15px; 
+    padding: 25px; 
+    margin-bottom: 20px; 
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); 
+  }
+  
+  .summary-section h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+  }
+  
+  .summary-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+    gap: 15px; 
+  }
+  
+  .summary-stat { 
+    text-align: center; 
+    padding: 20px; 
+    border-radius: 12px; 
+    background: #f8fafc; 
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+  }
+  
+  .summary-stat:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .summary-stat .number { 
+    font-size: 2.5rem; 
+    font-weight: bold; 
+    margin-bottom: 8px; 
+    transition: color 0.3s ease;
+  }
+  
+  .summary-stat .label { 
+    color: #666; 
+    font-size: 0.9rem; 
+    font-weight: 600;
+  }
+  
+  .number.working { color: #10b981; }
+  .number.broken { color: #ef4444; }
+  .number.partial { color: #f59e0b; }
+  
+  .service-health { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 15px; 
+    border: 1px solid #e2e8f0; 
+    border-radius: 8px; 
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+  }
+  
+  .service-health:hover {
+    border-color: #cbd5e0;
+    background-color: #f7fafc;
+  }
+  
+  .service-info {
+    flex: 1;
+  }
+  
+  .service-name { 
+    font-weight: bold; 
+    margin-bottom: 4px;
+    color: #2d3748;
+  }
+  
+  .service-url { 
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace; 
+    font-size: 0.75rem; 
+    color: #666; 
+    word-break: break-all;
+  }
+  
+  .progress-section {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+  
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  
+  .progress-text {
+    text-align: center;
+    color: #666;
+    font-size: 0.9rem;
+  }
+
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .diagnostic-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .summary-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .controls {
+      justify-content: center;
+    }
+    
+    .header h1 {
+      font-size: 2rem;
+    }
+    
+    .service-health {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+  }
+
+  /* Loading states */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
+  .testing {
+    animation: pulse 1.5s infinite;
+  }
+
+  /* Success/Error states */
+  .test-response.success {
+    border-color: #10b981;
+    background: #f0fff4;
+  }
+  
+  .test-response.error {
+    border-color: #ef4444;
+    background: #fef2f2;
+  }
+  
+  .test-response.warning {
+    border-color: #f59e0b;
+    background: #fffbeb;
+  }
+</style>
+
+<script is:inline>
+(function() {
+  // Configuration
+  const root = document.getElementById('diag-root');
+  const abs = {
+    orch: root.dataset.orch,
+    docs: root.dataset.docs,
+    search: root.dataset.search,
+    llm: root.dataset.llm,
+    graphrag: root.dataset.graphrag
+  };
+  
+  // Proxy paths for local development
+  const proxy = { 
+    orch: '/orch', 
+    docs: '/docs', 
+    search: '/search', 
+    llm: '/llm', 
+    graphrag: '/graphrag' 
+  };
+  
+  // Determine if we're in development mode
+  const isDev = location.hostname === 'localhost' || location.port === '3000' || location.port === '4321';
+  
+  // Use appropriate base URLs
+  const base = {
+    orch: isDev ? proxy.orch : abs.orch,
+    docs: isDev ? proxy.docs : abs.docs,
+    search: isDev ? proxy.search : abs.search,
+    llm: isDev ? proxy.llm : abs.llm,
+    graphrag: isDev ? proxy.graphrag : abs.graphrag
+  };
+  
+  // State management
+  let testResults = {};
+  let responseTimes = [];
+  let totalTests = 0;
+  let completedTests = 0;
+  
+  console.log('🔧 Diagnostics initialized with bases:', base);
+  console.log('🚀 Development mode:', isDev);
+  
+  // Utility functions
+  function setText(id, txt) { 
+    const el = document.getElementById(id); 
+    if (el) el.textContent = txt; 
+  }
+  
+  function setHTML(id, html) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  }
+  
+  function updateTimestamp() {
+    setText('timestamp', new Date().toLocaleString());
+  }
+  
+  function mark(id, status, responseTime = null) {
+    testResults[id] = status;
+    if (responseTime !== null) {
+      responseTimes.push(responseTime);
+    }
+    
+    // Update button states
+    const btns = document.querySelectorAll(`[data-target="${id}"]`);
+    for (let i = 0; i < btns.length; i++) {
+      btns[i].className = `test-button ${status}`;
+      btns[i].disabled = false;
+    }
+    
+    // Update response styling
+    const responseEl = document.getElementById(id);
+    if (responseEl) {
+      responseEl.className = `test-response ${status === 'working' ? 'success' : status === 'broken' ? 'error' : 'warning'}`;
+    }
+    
+    updateSummary();
+  }
+  
+  function updateSummary() {
+    const vals = Object.keys(testResults).map(k => testResults[k]);
+    const working = vals.filter(v => v === 'working').length;
+    const broken = vals.filter(v => v === 'broken').length;
+    const partial = vals.filter(v => v === 'partial').length;
+    const total = vals.length;
+    
+    setText('workingCount', working);
+    setText('brokenCount', broken);
+    setText('partialCount', partial);
+    setText('totalCount', total);
+    
+    // Calculate average response time
+    if (responseTimes.length > 0) {
+      const avgTime = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
+      setText('responseTime', `${avgTime.toFixed(0)}ms`);
+    }
+    
+    // Update progress if running all tests
+    if (totalTests > 0) {
+      const progress = (completedTests / totalTests) * 100;
+      const progressFill = document.getElementById('progress-fill');
+      if (progressFill) {
+        progressFill.style.width = `${progress}%`;
+      }
+      setText('progress-text', `${completedTests}/${totalTests} tests completed`);
+    }
+  }
+  
+  // Network request helper with better error handling and timing
+  async function makeRequest(baseUrl, path, init = {}) {
+    const startTime = performance.now();
+    
+    // Normalize URL construction
+    const url = baseUrl.replace(/\/$/, '') + path;
+    
+    try {
+      // Add default headers
+      const defaultHeaders = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...init.headers
+      };
+      
+      const response = await fetch(url, {
+        ...init,
+        headers: defaultHeaders,
+        mode: 'cors'
+      });
+      
+      const endTime = performance.now();
+      const responseTime = Math.round(endTime - startTime);
+      
+      let data;
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        data = { raw: text, contentType };
+      }
+      
+      return { 
+        ok: response.ok, 
+        status: response.status,
+        statusText: response.statusText,
+        data, 
+        responseTime,
+        url 
+      };
+      
+    } catch (error) {
+      const endTime = performance.now();
+      const responseTime = Math.round(endTime - startTime);
+      
+      return { 
+        ok: false, 
+        status: 0,
+        statusText: 'Network Error',
+        data: { error: error.message }, 
+        responseTime,
+        url 
+      };
+    }
+  }
+  
+  // Test execution functions
+  async function executeGET(baseUrl, path, target) {
+    const responseEl = document.getElementById(target);
+    const btn = document.querySelector(`[data-target="${target}"]`);
+    
+    if (btn) {
+      btn.className = 'test-button testing';
+      btn.disabled = true;
+    }
+    
+    setText(target, '🔄 Testing...');
+    
+    try {
+      const result = await makeRequest(baseUrl, path, { method: 'GET' });
+      
+      const output = {
+        status: `${result.status} ${result.statusText}`,
+        responseTime: `${result.responseTime}ms`,
+        url: result.url,
+        data: result.data
+      };
+      
+      setText(target, JSON.stringify(output, null, 2));
+      mark(target, result.ok ? 'working' : 'broken', result.responseTime);
+      
+    } catch (error) {
+      setText(target, `❌ Error: ${error.message}`);
+      mark(target, 'broken');
+    }
+  }
+  
+  async function executePOST(baseUrl, path, body, target) {
+    const responseEl = document.getElementById(target);
+    const btn = document.querySelector(`[data-target="${target}"]`);
+    
+    if (btn) {
+      btn.className = 'test-button testing';
+      btn.disabled = true;
+    }
+    
+    setText(target, '🔄 Testing...');
+    
+    try {
+      const result = await makeRequest(baseUrl, path, {
+        method: 'POST',
+        body: body || '{}'
+      });
+      
+      const output = {
+        status: `${result.status} ${result.statusText}`,
+        responseTime: `${result.responseTime}ms`,
+        url: result.url,
+        requestBody: body ? JSON.parse(body) : {},
+        data: result.data
+      };
+      
+      setText(target, JSON.stringify(output, null, 2));
+      mark(target, result.ok ? 'working' : 'broken', result.responseTime);
+      
+    } catch (error) {
+      setText(target, `❌ Error: ${error.message}`);
+      mark(target, 'broken');
+    }
+  }
+  
+  // Event handlers
+  function handleClearAll() {
+    testResults = {};
+    responseTimes = [];
+    
+    // Reset all response areas
+    const responseElements = document.querySelectorAll('.test-response');
+    responseElements.forEach(el => {
+      el.textContent = 'Click test to check...';
+      el.className = 'test-response';
+    });
+    
+    // Reset all buttons
+    const buttons = document.querySelectorAll('.test-button');
+    buttons.forEach(btn => {
+      if (!btn.classList.contains('refresh-all') && !btn.classList.contains('clear-all') && !btn.classList.contains('export-results')) {
+        btn.className = 'test-button';
+        btn.disabled = false;
+      }
+    });
+    
+    updateSummary();
+    console.log('🧹 Results cleared');
+  }
+  
+  function handleExport() {
+    const results = {
+      timestamp: new Date().toISOString(),
+      summary: {
+        working: Object.values(testResults).filter(v => v === 'working').length,
+        broken: Object.values(testResults).filter(v => v === 'broken').length,
+        partial: Object.values(testResults).filter(v => v === 'partial').length,
+        total: Object.keys(testResults).length,
+        averageResponseTime: responseTimes.length > 0 ? 
+          responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length : 0
+      },
+      tests: testResults,
+      responseTimes: responseTimes,
+      configuration: {
+        baseUrls: base,
+        isDevelopment: isDev
+      }
+    };
+    
+    const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `km-orchestrator-diagnostics-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    console.log('📊 Results exported');
+  }
+  
+  // Main event router
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.test-button, .refresh-all, .clear-all, .export-results');
+    if (!btn) return;
+    
+    const cmd = btn.getAttribute('data-cmd');
+    const path = btn.getAttribute('data-path');
+    const target = btn.getAttribute('data-target');
+    const body = btn.getAttribute('data-body');
+    
+    // Handle special commands
+    if (cmd === 'run-all') return runAllTests();
+    if (cmd === 'clear-all') return handleClearAll();
+    if (cmd === 'export') return handleExport();
+    
+    // Handle API tests
+    if (cmd === 'orch-get') return executeGET(base.orch, path, target);
+    if (cmd === 'orch-post') return executePOST(base.orch, path, body, target);
+    if (cmd === 'docs-get') return executeGET(base.docs, path, target);
+    if (cmd === 'docs-post') return executePOST(base.docs, path, body, target);
+    if (cmd === 'search-get') return executeGET(base.search, path, target);
+    if (cmd === 'llm-get') return executeGET(base.llm, path, target);
+    if (cmd === 'graphrag-get') return executeGET(base.graphrag, path, target);
+    if (cmd === 'graphrag-post') return executePOST(base.graphrag, path, body, target);
+  });
+  
+  // Run all tests function
+  async function runAllTests() {
+    console.log('🚀 Starting comprehensive diagnostics...');
+    
+    // Show progress section
+    const progressSection = document.getElementById('progress-section');
+    if (progressSection) {
+      progressSection.style.display = 'block';
+    }
+    
+    // Define all tests to run
+    const testQueue = [
+      // Orchestrator Core
+      () => executeGET(base.orch, '/health', 'health-result'),
+      () => executeGET(base.orch, '/services/status', 'services-result'),
+      () => executePOST(base.orch, '/api/chat', 
+        JSON.stringify({message: 'test query for diagnostics', context: 'system_test'}), 
+        'orchestrator-chat-result'),
+      
+      // Document Management
+      () => executePOST(base.orch, '/api/upload', 
+        JSON.stringify({
+          title: 'Diagnostic Test Document',
+          content: 'This is a test document for diagnostic purposes.',
+          classification: 'Test',
+          entities: 'diagnostics, test',
+          metadata: {source: 'diagnostics', timestamp: new Date().toISOString()}
+        }), 'upload-result'),
+      () => executePOST(base.docs, '/tools/store-document', 
+        JSON.stringify({
+          title: 'Direct Test Document',
+          content: 'This is a direct test to the document service.',
+          file_type: 'text',
+          metadata: {source: 'dashboard_test', classification: 'Test', timestamp: new Date().toISOString()}
+        }), 'direct-store-result'),
+      () => executeGET(base.docs, '/tools/database-stats', 'doc-stats-result'),
+      
+      // Search Functions
+      () => executePOST(base.orch, '/api/search', 
+        JSON.stringify({query: 'test diagnostic', limit: 3, include_metadata: true}), 
+        'search-result'),
+      () => executePOST(base.docs, '/tools/search-documents', 
+        JSON.stringify({query: 'test', max_results: 3, include_content: true}), 
+        'direct-search-result'),
+      () => executeGET(base.search, '/health', 'search-service-result'),
+      
+      // AI & LLM
+      () => executeGET(base.llm, '/health', 'llm-health-result'),
+      () => executePOST(base.orch, '/api/analyze', 
+        JSON.stringify({type: 'diagnostic_test', content: 'diagnostic test content', options: {include_entities: true}}), 
+        'analyze-result'),
+      () => executePOST(base.orch, '/api/rag', 
+        JSON.stringify({query: 'test diagnostic query', context_limit: 5, include_sources: true}), 
+        'rag-result'),
+      
+      // Knowledge Graphs
+      () => executeGET(base.graphrag, '/health', 'graphrag-health-result'),
+      () => executePOST(base.orch, '/api/graph/build', 
+        JSON.stringify({source: 'diagnostic_documents', refresh: true}), 
+        'build-graph-result'),
+      () => executePOST(base.orch, '/api/graph/query', 
+        JSON.stringify({entity: 'test', relationship_depth: 2}), 
+        'relationships-result'),
+      
+      // Service Connectivity
+      () => executeGET(base.docs, '/health', 'docs-connectivity'),
+      () => executeGET(base.search, '/health', 'search-connectivity'),
+      () => executeGET(base.llm, '/health', 'llm-connectivity'),
+      () => executeGET(base.graphrag, '/health', 'graphrag-connectivity')
+    ];
+    
+    totalTests = testQueue.length;
+    completedTests = 0;
+    responseTimes = [];
+    
+    // Execute tests with delay between each
+    for (let i = 0; i < testQueue.length; i++) {
+      try {
+        await testQueue[i]();
+        completedTests++;
+        updateSummary();
+      } catch (error) {
+        console.error(`Test ${i + 1} failed:`, error);
+        completedTests++;
+      }
+      
+      // Small delay between tests to prevent overwhelming services
+      if (i < testQueue.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 250));
+      }
+    }
+    
+    // Hide progress section after completion
+    setTimeout(() => {
+      if (progressSection) {
+        progressSection.style.display = 'none';
+      }
+      totalTests = 0;
+      completedTests = 0;
+    }, 2000);
+    
+    updateTimestamp();
+    console.log('✅ All diagnostics completed');
+  }
+  
+  // Initialize
+  updateTimestamp();
+  console.log('🎯 KM Orchestrator Diagnostics ready');
+  
+})();
+</script>

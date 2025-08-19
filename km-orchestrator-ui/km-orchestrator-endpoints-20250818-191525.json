@@ -1,0 +1,634 @@
+﻿{
+    "km-mcp-search":  {
+                          "BaseUrl":  "https://km-mcp-search.azurewebsites.net",
+                          "Endpoints":  [
+                                            {
+                                                "Source":  "Discovery",
+                                                "StatusCode":  200,
+                                                "Path":  "/health",
+                                                "Method":  "GET",
+                                                "ContentType":  "application/json",
+                                                "Status":  "Working"
+                                            },
+                                            {
+                                                "Source":  "Discovery",
+                                                "StatusCode":  200,
+                                                "Path":  "/docs",
+                                                "Method":  "GET",
+                                                "ContentType":  "text/html; charset=utf-8",
+                                                "Status":  "Working"
+                                            },
+                                            {
+                                                "Source":  "Discovery",
+                                                "StatusCode":  200,
+                                                "Path":  "/openapi.json",
+                                                "Method":  "GET",
+                                                "ContentType":  "application/json",
+                                                "Status":  "Working"
+                                            },
+                                            {
+                                                "Source":  "Discovery",
+                                                "StatusCode":  200,
+                                                "Path":  "/redoc",
+                                                "Method":  "GET",
+                                                "ContentType":  "text/html; charset=utf-8",
+                                                "Status":  "Working"
+                                            },
+                                            {
+                                                "Description":  "Clean MCP server interface for search service",
+                                                "Tags":  null,
+                                                "Source":  "OpenAPI",
+                                                "HasRequestBody":  false,
+                                                "Path":  "/",
+                                                "Method":  "GET",
+                                                "Summary":  "Root"
+                                            },
+                                            {
+                                                "Description":  "Health check endpoint with search service status",
+                                                "Tags":  null,
+                                                "Source":  "OpenAPI",
+                                                "HasRequestBody":  false,
+                                                "Path":  "/health",
+                                                "Method":  "GET",
+                                                "Summary":  "Health Check"
+                                            },
+                                            {
+                                                "Description":  "Main search endpoint with hybrid search",
+                                                "Tags":  null,
+                                                "Source":  "OpenAPI",
+                                                "HasRequestBody":  false,
+                                                "Path":  "/search",
+                                                "Method":  "POST",
+                                                "Summary":  "Search Documents"
+                                            },
+                                            {
+                                                "Description":  "Semantic search using OpenAI embeddings",
+                                                "Tags":  null,
+                                                "Source":  "OpenAPI",
+                                                "HasRequestBody":  false,
+                                                "Path":  "/search/semantic",
+                                                "Method":  "POST",
+                                                "Summary":  "Semantic Search Endpoint"
+                                            },
+                                            {
+                                                "Description":  "Keyword-based search",
+                                                "Tags":  null,
+                                                "Source":  "OpenAPI",
+                                                "HasRequestBody":  false,
+                                                "Path":  "/search/keyword",
+                                                "Method":  "POST",
+                                                "Summary":  "Keyword Search Endpoint"
+                                            }
+                                        ],
+                          "DiscoveredAt":  {
+                                               "value":  "\/Date(1755569719629)\/",
+                                               "DisplayHint":  2,
+                                               "DateTime":  "Monday, August 18, 2025 7:15:19 PM"
+                                           }
+                      },
+    "km-mcp-sql-docs":  {
+                            "BaseUrl":  "https://km-mcp-sql-docs.azurewebsites.net",
+                            "Endpoints":  [
+                                              {
+                                                  "Source":  "Discovery",
+                                                  "StatusCode":  200,
+                                                  "Path":  "/health",
+                                                  "Method":  "GET",
+                                                  "ContentType":  "application/json",
+                                                  "Status":  "Working"
+                                              },
+                                              {
+                                                  "Source":  "Discovery",
+                                                  "StatusCode":  200,
+                                                  "Path":  "/docs",
+                                                  "Method":  "GET",
+                                                  "ContentType":  "text/html; charset=utf-8",
+                                                  "Status":  "Working"
+                                              },
+                                              {
+                                                  "Source":  "Discovery",
+                                                  "StatusCode":  200,
+                                                  "Path":  "/openapi.json",
+                                                  "Method":  "GET",
+                                                  "ContentType":  "application/json",
+                                                  "Status":  "Working"
+                                              },
+                                              {
+                                                  "Source":  "Discovery",
+                                                  "StatusCode":  200,
+                                                  "Path":  "/tools",
+                                                  "Method":  "GET",
+                                                  "ContentType":  "application/json",
+                                                  "Status":  "Working"
+                                              },
+                                              {
+                                                  "Source":  "Discovery",
+                                                  "StatusCode":  200,
+                                                  "Path":  "/redoc",
+                                                  "Method":  "GET",
+                                                  "ContentType":  "text/html; charset=utf-8",
+                                                  "Status":  "Working"
+                                              },
+                                              {
+                                                  "Description":  "Serve beautiful interactive HTML UI",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Root"
+                                              },
+                                              {
+                                                  "Description":  "Health check endpoint",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/health",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Health Check"
+                                              },
+                                              {
+                                                  "Description":  "List available MCP tools",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/tools",
+                                                  "Method":  "GET",
+                                                  "Summary":  "List Tools"
+                                              },
+                                              {
+                                                  "Description":  "Search for documents",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  true,
+                                                  "Path":  "/tools/search-documents",
+                                                  "Method":  "POST",
+                                                  "Summary":  "Search Documents"
+                                              },
+                                              {
+                                                  "Description":  "Get database statistics",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/tools/database-stats",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Get Database Stats"
+                                              },
+                                              {
+                                                  "Description":  "Get all documents for search indexing and graph construction",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/tools/get-documents-for-search",
+                                                  "Method":  "POST",
+                                                  "Summary":  "Get Documents For Search"
+                                              },
+                                              {
+                                                  "Description":  "Alias for /tools/database-stats - for dashboard compatibility",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/stats",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Get Stats"
+                                              },
+                                              {
+                                                  "Description":  "Store a document with proper request parsing",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/tools/store-document",
+                                                  "Method":  "POST",
+                                                  "Summary":  "Store Document"
+                                              }
+                                          ],
+                            "DiscoveredAt":  {
+                                                 "value":  "\/Date(1755569721269)\/",
+                                                 "DisplayHint":  2,
+                                                 "DateTime":  "Monday, August 18, 2025 7:15:21 PM"
+                                             }
+                        },
+    "km-orchestrator":  {
+                            "BaseUrl":  "https://km-orchestrator.azurewebsites.net",
+                            "Endpoints":  [
+                                              {
+                                                  "Source":  "Discovery",
+                                                  "StatusCode":  200,
+                                                  "Path":  "/health",
+                                                  "Method":  "GET",
+                                                  "ContentType":  "application/json",
+                                                  "Status":  "Working"
+                                              },
+                                              {
+                                                  "Source":  "Discovery",
+                                                  "StatusCode":  200,
+                                                  "Path":  "/docs",
+                                                  "Method":  "GET",
+                                                  "ContentType":  "text/html; charset=utf-8",
+                                                  "Status":  "Working"
+                                              },
+                                              {
+                                                  "Source":  "Discovery",
+                                                  "StatusCode":  200,
+                                                  "Path":  "/openapi.json",
+                                                  "Method":  "GET",
+                                                  "ContentType":  "application/json",
+                                                  "Status":  "Working"
+                                              },
+                                              {
+                                                  "Source":  "Discovery",
+                                                  "StatusCode":  200,
+                                                  "Path":  "/redoc",
+                                                  "Method":  "GET",
+                                                  "ContentType":  "text/html; charset=utf-8",
+                                                  "Status":  "Working"
+                                              },
+                                              {
+                                                  "Description":  "Serve the complete dashboard from file",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Dashboard"
+                                              },
+                                              {
+                                                  "Description":  "Health check endpoint",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/health",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Health Check"
+                                              },
+                                              {
+                                                  "Description":  "Get detailed status of all MCP services with server-side calls",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/services/status",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Services Status"
+                                              },
+                                              {
+                                                  "Description":  "Server-side chat with document search - bypasses CORS",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/api/chat",
+                                                  "Method":  "POST",
+                                                  "Summary":  "Chat Orchestration"
+                                              },
+                                              {
+                                                  "Description":  "Server-side document upload - bypasses CORS",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/tools/store-document",
+                                                  "Method":  "POST",
+                                                  "Summary":  "Upload Orchestration"
+                                              },
+                                              {
+                                                  "Description":  "Server-side search - bypasses CORS",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/tools/search-documents",
+                                                  "Method":  "POST",
+                                                  "Summary":  "Search Orchestration"
+                                              },
+                                              {
+                                                  "Description":  "Analyze content via orchestrator - proxy to km-mcp-llm",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/api/analyze",
+                                                  "Method":  "POST",
+                                                  "Summary":  "Analyze Content"
+                                              },
+                                              {
+                                                  "Description":  "Proxy to document service stats - bypasses CORS",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/proxy/docs-stats",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Proxy Docs Stats"
+                                              },
+                                              {
+                                                  "Description":  "Proxy to document service health - bypasses CORS",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/proxy/docs-health",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Proxy Docs Health"
+                                              },
+                                              {
+                                                  "Description":  "Comprehensive system diagnostics dashboard",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/diagnostics",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Diagnostics Dashboard"
+                                              },
+                                              {
+                                                  "Description":  "Enhanced diagnostics with CORS and connectivity analysis",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/enhanced-diagnostics",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Enhanced Diagnostics"
+                                              },
+                                              {
+                                                  "Description":  "Service status monitoring page",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/service-status",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Service Status Page"
+                                              },
+                                              {
+                                                  "Description":  "Detailed diagnostics for all MCP services",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/service-diagnostics",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Detailed Service Diagnostics"
+                                              },
+                                              {
+                                                  "Description":  "Check km-mcp-sql-docs health",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/api/docs-health",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Docs Health Check"
+                                              },
+                                              {
+                                                  "Description":  "Test km-mcp-search service",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/api/search-test",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Search Service Test"
+                                              },
+                                              {
+                                                  "Description":  "Test document upload capability",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/api/upload-test",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Upload Service Test"
+                                              },
+                                              {
+                                                  "Description":  "Get comprehensive system statistics",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/api/stats",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Get System Stats"
+                                              },
+                                              {
+                                                  "Description":  "Upload document via orchestrator - FIXED JSON HANDLING",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/api/upload",
+                                                  "Method":  "POST",
+                                                  "Summary":  "Upload Document"
+                                              },
+                                              {
+                                                  "Description":  "Search documents via orchestrator - FIXED JSON HANDLING",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/api/search",
+                                                  "Method":  "POST",
+                                                  "Summary":  "Search Documents"
+                                              },
+                                              {
+                                                  "Description":  "Simple diagnostic to test if deployments are working",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/debug-cors",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Debug Cors Endpoint"
+                                              },
+                                              {
+                                                  "Description":  "Safe debug page to test CORS issues",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/debug-cors-page",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Debug Cors Page"
+                                              },
+                                              {
+                                                  "Description":  "Health check for all MCP services",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/api/simple-test",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Simple Test"
+                                              }
+                                          ],
+                            "DiscoveredAt":  {
+                                                 "value":  "\/Date(1755569724761)\/",
+                                                 "DisplayHint":  2,
+                                                 "DateTime":  "Monday, August 18, 2025 7:15:24 PM"
+                                             }
+                        },
+    "km-mcp-graphrag":  {
+                            "BaseUrl":  "https://km-mcp-graphrag.azurewebsites.net",
+                            "Endpoints":  [
+                                              {
+                                                  "Source":  "Discovery",
+                                                  "StatusCode":  200,
+                                                  "Path":  "/health",
+                                                  "Method":  "GET",
+                                                  "ContentType":  "application/json",
+                                                  "Status":  "Working"
+                                              },
+                                              {
+                                                  "Source":  "Discovery",
+                                                  "StatusCode":  200,
+                                                  "Path":  "/docs",
+                                                  "Method":  "GET",
+                                                  "ContentType":  "text/html; charset=utf-8",
+                                                  "Status":  "Working"
+                                              },
+                                              {
+                                                  "Source":  "Discovery",
+                                                  "StatusCode":  200,
+                                                  "Path":  "/openapi.json",
+                                                  "Method":  "GET",
+                                                  "ContentType":  "application/json",
+                                                  "Status":  "Working"
+                                              },
+                                              {
+                                                  "Source":  "Discovery",
+                                                  "StatusCode":  200,
+                                                  "Path":  "/redoc",
+                                                  "Method":  "GET",
+                                                  "ContentType":  "text/html; charset=utf-8",
+                                                  "Status":  "Working"
+                                              },
+                                              {
+                                                  "Description":  "Clean MCP server interface matching the standard format",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Root"
+                                              },
+                                              {
+                                                  "Description":  "Health check endpoint",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/health",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Health Check"
+                                              },
+                                              {
+                                                  "Description":  "Extract entities and relationships from text",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/tools/extract-entities",
+                                                  "Method":  "POST",
+                                                  "Summary":  "Extract Entities"
+                                              },
+                                              {
+                                                  "Description":  "Analyze a specific entity and its connections",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/tools/analyze-entity",
+                                                  "Method":  "POST",
+                                                  "Summary":  "Analyze Entity"
+                                              },
+                                              {
+                                                  "Description":  "Get knowledge graph statistics",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/tools/graph-stats",
+                                                  "Method":  "GET",
+                                                  "Summary":  "Get Graph Stats"
+                                              },
+                                              {
+                                                  "Description":  "Build knowledge graph from all documents in the document service",
+                                                  "Tags":  null,
+                                                  "Source":  "OpenAPI",
+                                                  "HasRequestBody":  false,
+                                                  "Path":  "/tools/build-graph-from-documents",
+                                                  "Method":  "POST",
+                                                  "Summary":  "Build Graph From Documents"
+                                              }
+                                          ],
+                            "DiscoveredAt":  {
+                                                 "value":  "\/Date(1755569722424)\/",
+                                                 "DisplayHint":  2,
+                                                 "DateTime":  "Monday, August 18, 2025 7:15:22 PM"
+                                             }
+                        },
+    "km-mcp-llm":  {
+                       "BaseUrl":  "https://km-mcp-llm.azurewebsites.net",
+                       "Endpoints":  [
+                                         {
+                                             "Source":  "Discovery",
+                                             "StatusCode":  200,
+                                             "Path":  "/health",
+                                             "Method":  "GET",
+                                             "ContentType":  "application/json",
+                                             "Status":  "Working"
+                                         },
+                                         {
+                                             "Source":  "Discovery",
+                                             "StatusCode":  200,
+                                             "Path":  "/docs",
+                                             "Method":  "GET",
+                                             "ContentType":  "text/html; charset=utf-8",
+                                             "Status":  "Working"
+                                         },
+                                         {
+                                             "Source":  "Discovery",
+                                             "StatusCode":  200,
+                                             "Path":  "/openapi.json",
+                                             "Method":  "GET",
+                                             "ContentType":  "application/json",
+                                             "Status":  "Working"
+                                         },
+                                         {
+                                             "Source":  "Discovery",
+                                             "StatusCode":  200,
+                                             "Path":  "/redoc",
+                                             "Method":  "GET",
+                                             "ContentType":  "text/html; charset=utf-8",
+                                             "Status":  "Working"
+                                         },
+                                         {
+                                             "Description":  "Clean MCP server interface matching the standard format",
+                                             "Tags":  null,
+                                             "Source":  "OpenAPI",
+                                             "HasRequestBody":  false,
+                                             "Path":  "/",
+                                             "Method":  "GET",
+                                             "Summary":  "Root"
+                                         },
+                                         {
+                                             "Description":  "Health check endpoint with AI service status",
+                                             "Tags":  null,
+                                             "Source":  "OpenAPI",
+                                             "HasRequestBody":  false,
+                                             "Path":  "/health",
+                                             "Method":  "GET",
+                                             "Summary":  "Health Check"
+                                         },
+                                         {
+                                             "Description":  "Analyze document content using external AI",
+                                             "Tags":  null,
+                                             "Source":  "OpenAPI",
+                                             "HasRequestBody":  false,
+                                             "Path":  "/analyze",
+                                             "Method":  "POST",
+                                             "Summary":  "Analyze Document"
+                                         },
+                                         {
+                                             "Description":  "Answer questions using external AI",
+                                             "Tags":  null,
+                                             "Source":  "OpenAPI",
+                                             "HasRequestBody":  false,
+                                             "Path":  "/qa",
+                                             "Method":  "POST",
+                                             "Summary":  "Question Answer"
+                                         },
+                                         {
+                                             "Description":  "Generate summaries using external AI",
+                                             "Tags":  null,
+                                             "Source":  "OpenAPI",
+                                             "HasRequestBody":  false,
+                                             "Path":  "/summarize",
+                                             "Method":  "POST",
+                                             "Summary":  "Summarize Content"
+                                         }
+                                     ],
+                       "DiscoveredAt":  {
+                                            "value":  "\/Date(1755569723666)\/",
+                                            "DisplayHint":  2,
+                                            "DateTime":  "Monday, August 18, 2025 7:15:23 PM"
+                                        }
+                   }
+}
