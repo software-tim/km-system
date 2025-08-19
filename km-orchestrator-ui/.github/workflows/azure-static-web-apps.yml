@@ -1,4 +1,4 @@
-﻿name: Deploy to Azure Static Web Apps
+name: Deploy to Azure Static Web Apps
 
 on:
   push:
@@ -19,24 +19,38 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
       
-      - name: Debug package.json
+      - name: Clean everything
         run: |
-          echo "Checking package.json:"
-          cat package.json
-          echo "File encoding check:"
-          file package.json
-          
-      - name: Clean install
+          rm -rf node_modules package-lock.json .astro dist
+          echo "Cleaned all build artifacts"
+      
+      - name: Check for BOM in package.json
         run: |
-          rm -rf node_modules package-lock.json
-          npm install
+          echo "Checking package.json for BOM:"
+          hexdump -C package.json | head -2
+          echo "First few characters:"
+          head -c 10 package.json | od -c
+      
+      - name: Fix package.json if needed
+        run: |
+          # Remove BOM if present
+          if [ "$(head -c 3 package.json | od -An -tx1)" = " ef bb bf" ]; then
+            echo "BOM detected, removing..."
+            tail -c +4 package.json > package.json.tmp && mv package.json.tmp package.json
+          fi
+          echo "Final package.json check:"
+          head -c 10 package.json | od -c
+      
+      - name: Install dependencies
+        run: |
+          npm cache clean --force
+          npm install --no-package-lock
       
       - name: Build site
         run: |
           npm run build
-          echo "Build completed, checking output:"
+          echo "Build completed successfully!"
           ls -la dist/
       
       - name: Deploy to Azure
