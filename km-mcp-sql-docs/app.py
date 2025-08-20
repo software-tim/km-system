@@ -5,6 +5,7 @@ KM-MCP-SQL-DOCS Service - WITH INTERACTIVE HTML UI
 
 from fastapi import FastAPI, HTTPException, File, UploadFile, Form, Request
 from fastapi.responses import JSONResponse, StreamingResponse, HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 import logging
@@ -28,6 +29,15 @@ app = FastAPI(
     title="KM-MCP-SQL-DOCS API",
     description="Document Management Service for Knowledge Management System",
     version="1.0.0"
+)
+
+# ADD CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Initialize settings and operations
