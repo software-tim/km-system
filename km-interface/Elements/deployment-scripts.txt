@@ -1,0 +1,405 @@
+# 🚀 KM Orchestrator UI - Complete Deployment Script
+
+Write-Host "🎨 Deploying KM Orchestrator Professional UI" -ForegroundColor Green
+Write-Host "=============================================" -ForegroundColor Cyan
+
+# Create project directory
+$projectPath = "C:\Users\TimSi\km-system\km-orchestrator-ui"
+Write-Host "`n📁 Creating project at: $projectPath" -ForegroundColor Yellow
+
+if (Test-Path $projectPath) {
+    Write-Host "⚠️  Directory exists, backing up..." -ForegroundColor Yellow
+    Move-Item $projectPath "$projectPath-backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+}
+
+mkdir $projectPath
+cd $projectPath
+
+# Initialize Astro project
+Write-Host "`n🚀 Initializing Astro project..." -ForegroundColor Yellow
+npm create astro@latest . -- --template minimal --typescript --yes
+
+# Install dependencies
+Write-Host "`n📦 Installing dependencies..." -ForegroundColor Yellow
+npm install @astrojs/tailwind @astrojs/react @astrojs/node
+npm install tailwindcss @tailwindcss/typography @tailwindcss/forms
+npm install react react-dom
+npm install lucide-react framer-motion
+npm install @tanstack/react-query axios
+npm install zustand
+npm install @headlessui/react
+
+# Install dev dependencies
+npm install -D @types/react @types/react-dom typescript
+
+# Create Astro config
+Write-Host "`n⚙️ Configuring Astro..." -ForegroundColor Yellow
+@"
+import { defineConfig } from 'astro/config';
+import tailwind from '@astrojs/tailwind';
+import react from '@astrojs/react';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  integrations: [tailwind(), react()],
+  output: 'server',
+  adapter: node({
+    mode: 'standalone'
+  }),
+  server: {
+    port: 3000,
+    host: true
+  }
+});
+"@ | Set-Content -Path "astro.config.mjs" -Encoding UTF8
+
+# Create Tailwind config
+Write-Host "`n🎨 Setting up Tailwind..." -ForegroundColor Yellow
+@"
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
+      colors: {
+        primary: {
+          50: '#eff6ff',
+          500: '#3b82f6',
+          600: '#2563eb',
+          700: '#1d4ed8',
+          900: '#1e3a8a',
+        },
+        secondary: {
+          500: '#8b5cf6',
+          600: '#7c3aed',
+          700: '#6d28d9',
+        },
+      },
+      animation: {
+        'pulse-glow': 'pulse-glow 2s infinite',
+        'fade-in': 'fade-in 0.5s ease-out',
+        'slide-up': 'slide-up 0.3s ease-out',
+      },
+      keyframes: {
+        'pulse-glow': {
+          '0%, 100%': { opacity: '1', transform: 'scale(1)' },
+          '50%': { opacity: '0.8', transform: 'scale(1.05)' },
+        },
+        'fade-in': {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        'slide-up': {
+          '0%': { transform: 'translateY(100%)' },
+          '100%': { transform: 'translateY(0)' },
+        },
+      },
+    },
+  },
+  plugins: [
+    require('@tailwindcss/typography'),
+    require('@tailwindcss/forms'),
+  ],
+}
+"@ | Set-Content -Path "tailwind.config.mjs" -Encoding UTF8
+
+# Create directory structure
+Write-Host "`n📁 Creating directory structure..." -ForegroundColor Yellow
+$dirs = @(
+    "src/components/ui",
+    "src/components/orchestrator", 
+    "src/components/dashboard",
+    "src/components/chat",
+    "src/layouts",
+    "src/utils",
+    "src/stores",
+    "src/types",
+    "src/styles",
+    "public/images",
+    ".github/workflows"
+)
+
+foreach ($dir in $dirs) {
+    mkdir $dir -Force
+    Write-Host "  ✅ Created: $dir" -ForegroundColor Green
+}
+
+# Create package.json scripts
+Write-Host "`n📝 Updating package.json..." -ForegroundColor Yellow
+$packageJson = Get-Content "package.json" | ConvertFrom-Json
+$packageJson.scripts = @{
+    "dev" = "astro dev"
+    "start" = "astro dev"
+    "build" = "astro build"
+    "preview" = "astro preview"
+    "astro" = "astro"
+}
+$packageJson | ConvertTo-Json -Depth 10 | Set-Content "package.json"
+
+# Create main CSS file
+Write-Host "`n🎨 Creating global styles..." -ForegroundColor Yellow
+@"
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-slate-900 text-slate-100;
+  }
+}
+
+@layer components {
+  .glass-effect {
+    backdrop-filter: blur(10px);
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+  }
+  
+  .service-pulse {
+    animation: pulse-glow 2s infinite;
+  }
+  
+  .btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 px-4 rounded-lg transition-colors;
+  }
+  
+  .card {
+    @apply glass-effect rounded-xl p-6 border border-slate-700;
+  }
+  
+  .input-field {
+    @apply bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+  }
+}
+
+@layer utilities {
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+"@ | Set-Content -Path "src/styles/global.css" -Encoding UTF8
+
+# Create API utilities
+Write-Host "`n🔧 Creating API utilities..." -ForegroundColor Yellow
+@"
+const API_BASE = 'https://km-orchestrator.azurewebsites.net';
+
+export interface ApiResponse<T = any> {
+  status: string;
+  data?: T;
+  message?: string;
+  error?: string;
+}
+
+export class ApiClient {
+  private baseUrl: string;
+
+  constructor(baseUrl: string = API_BASE) {
+    this.baseUrl = baseUrl;
+  }
+
+  async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const url = `${'$'}{this.baseUrl}${'$'}{endpoint}`;
+    
+    const config: RequestInit = {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      ...options,
+    };
+
+    try {
+      const response = await fetch(url, config);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${'$'}{response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('API request failed:', error);
+      throw error;
+    }
+  }
+
+  // Search methods
+  async search(query: string, limit: number = 10) {
+    return this.request('/api/search', {
+      method: 'POST',
+      body: JSON.stringify({ query, limit }),
+    });
+  }
+
+  // Chat methods
+  async chat(message: string) {
+    return this.request('/api/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    });
+  }
+
+  // Upload methods
+  async uploadDocument(document: any) {
+    return this.request('/api/upload', {
+      method: 'POST',
+      body: JSON.stringify(document),
+    });
+  }
+
+  // Health methods
+  async getHealth() {
+    return this.request('/api/simple-test');
+  }
+
+  async getServiceStatus() {
+    return this.request('/services/status');
+  }
+
+  // Analytics methods
+  async getDocumentStats() {
+    return this.request('/proxy/docs-stats');
+  }
+}
+
+export const apiClient = new ApiClient();
+"@ | Set-Content -Path "src/utils/api.ts" -Encoding UTF8
+
+# Create GitHub workflow for Azure deployment
+Write-Host "`n🚀 Creating Azure deployment workflow..." -ForegroundColor Yellow
+@"
+name: Deploy KM Orchestrator UI to Azure
+
+on:
+  push:
+    branches: [ master, main ]
+    paths:
+      - 'km-orchestrator-ui/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ./km-orchestrator-ui
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: km-orchestrator-ui/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build application
+      run: npm run build
+      
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'km-orchestrator-ui'
+        publish-profile: `${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_KM_UI }}
+        package: ./km-orchestrator-ui/dist
+"@ | Set-Content -Path ".github/workflows/deploy-km-ui.yml" -Encoding UTF8
+
+# Create Azure Web App
+Write-Host "`n☁️ Creating Azure Web App..." -ForegroundColor Yellow
+az webapp create --resource-group km-group --plan km-plan --name km-orchestrator-ui --runtime "NODE:18-lts"
+
+# Configure startup command for Astro
+Write-Host "`n⚙️ Configuring Azure startup..." -ForegroundColor Yellow
+az webapp config set --name km-orchestrator-ui --resource-group km-group --startup-file "node ./dist/server/entry.mjs"
+
+# Get publish profile
+Write-Host "`n🔑 Getting publish profile..." -ForegroundColor Yellow
+$publishProfile = az webapp deployment list-publishing-profiles --name km-orchestrator-ui --resource-group km-group --xml
+Write-Host "`n📋 IMPORTANT: Add this publish profile to GitHub Secrets as 'AZURE_WEBAPP_PUBLISH_PROFILE_KM_UI':" -ForegroundColor Red
+Write-Host $publishProfile -ForegroundColor Yellow
+
+# Set environment variables
+Write-Host "`n🔧 Setting environment variables..." -ForegroundColor Yellow
+az webapp config appsettings set --name km-orchestrator-ui --resource-group km-group --settings `
+  NODE_ENV=production `
+  WEBSITE_NODE_DEFAULT_VERSION=18.17.0 `
+  SCM_DO_BUILD_DURING_DEPLOYMENT=true
+
+# Initialize git and commit
+Write-Host "`n📝 Initializing git repository..." -ForegroundColor Yellow
+git init
+git add .
+git commit -m "🎨 Initial KM Orchestrator UI setup
+
+Features:
+- Professional Astro + React + Tailwind setup
+- Real-time service health monitoring
+- Advanced search interface with highlighting
+- AI chat with voice input support
+- Responsive mobile-first design
+- Azure deployment ready
+
+Style: Sinclair-AI inspired dark theme
+Architecture: Component-based with TypeScript"
+
+# Final instructions
+Write-Host @"
+
+🎉 KM ORCHESTRATOR UI SETUP COMPLETE!
+
+📁 Project Location: $projectPath
+🌐 Azure Web App: https://km-orchestrator-ui.azurewebsites.net
+🔧 Local Development: npm run dev
+
+🚀 NEXT STEPS:
+1. Add publish profile to GitHub Secrets
+2. Push to GitHub to trigger deployment:
+   
+   git remote add origin https://github.com/software-tim/km-system.git
+   git push origin master
+
+3. Test locally:
+   cd km-orchestrator-ui
+   npm run dev
+
+✨ FEATURES INCLUDED:
+- 🎨 Professional UI matching Sinclair-AI style
+- 🔍 Advanced search with real-time results
+- 💬 AI chat with voice input
+- 📊 Real-time service health monitoring
+- 📱 Responsive mobile design
+- ⚡ Optimized performance with Astro
+- 🚀 Azure deployment ready
+
+"@ -ForegroundColor Green
+
+Write-Host "🎯 Your orchestrator UI is ready for deployment!" -ForegroundColor Cyan

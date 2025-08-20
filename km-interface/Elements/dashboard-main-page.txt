@@ -1,0 +1,209 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ServiceHealth from '../components/dashboard/ServiceHealth';
+import QuickActions from '../components/dashboard/QuickActions';
+import RecentActivity from '../components/dashboard/RecentActivity';
+import DocumentStats from '../components/dashboard/DocumentStats';
+import SearchInterface from '../components/orchestrator/SearchInterface';
+import ChatPreview from '../components/chat/ChatPreview';
+---
+
+<Layout title="KM Orchestrator - Intelligent Knowledge Management">
+  <!-- Hero Section -->
+  <div class="mb-8">
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent mb-4">
+        Knowledge Management Orchestrator
+      </h1>
+      <p class="text-xl text-slate-400 max-w-3xl mx-auto">
+        Intelligent orchestration of AI services for advanced document management, search, and analysis
+      </p>
+    </div>
+    
+    <!-- Quick Stats Bar -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div class="glass-effect rounded-xl p-4 border border-slate-700">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-slate-400">Services Online</p>
+            <p class="text-2xl font-bold text-green-400" id="services-count">4/4</p>
+          </div>
+          <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="glass-effect rounded-xl p-4 border border-slate-700">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-slate-400">Documents</p>
+            <p class="text-2xl font-bold text-blue-400" id="docs-count">1,247</p>
+          </div>
+          <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="glass-effect rounded-xl p-4 border border-slate-700">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-slate-400">Avg Response</p>
+            <p class="text-2xl font-bold text-purple-400" id="response-time">145ms</p>
+          </div>
+          <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="glass-effect rounded-xl p-4 border border-slate-700">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-slate-400">Searches Today</p>
+            <p class="text-2xl font-bold text-cyan-400" id="searches-count">89</p>
+          </div>
+          <div class="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Main Grid Layout -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Left Column: Search & Quick Actions -->
+    <div class="lg:col-span-2 space-y-8">
+      <!-- Search Interface -->
+      <div class="glass-effect rounded-xl p-6 border border-slate-700">
+        <h2 class="text-xl font-semibold mb-4 flex items-center">
+          <svg class="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          Intelligent Search
+        </h2>
+        <SearchInterface client:load />
+      </div>
+      
+      <!-- Quick Actions -->
+      <div class="glass-effect rounded-xl p-6 border border-slate-700">
+        <h2 class="text-xl font-semibold mb-4 flex items-center">
+          <svg class="w-5 h-5 mr-2 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+          Quick Actions
+        </h2>
+        <QuickActions client:load />
+      </div>
+      
+      <!-- Recent Activity -->
+      <div class="glass-effect rounded-xl p-6 border border-slate-700">
+        <h2 class="text-xl font-semibold mb-4 flex items-center">
+          <svg class="w-5 h-5 mr-2 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Recent Activity
+        </h2>
+        <RecentActivity client:load />
+      </div>
+    </div>
+    
+    <!-- Right Column: System Status & Chat -->
+    <div class="space-y-8">
+      <!-- Service Health -->
+      <div class="glass-effect rounded-xl p-6 border border-slate-700">
+        <h2 class="text-xl font-semibold mb-4 flex items-center">
+          <svg class="w-5 h-5 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          System Health
+        </h2>
+        <ServiceHealth client:load />
+      </div>
+      
+      <!-- Document Statistics -->
+      <div class="glass-effect rounded-xl p-6 border border-slate-700">
+        <h2 class="text-xl font-semibold mb-4 flex items-center">
+          <svg class="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          Analytics
+        </h2>
+        <DocumentStats client:load />
+      </div>
+      
+      <!-- Chat Preview -->
+      <div class="glass-effect rounded-xl p-6 border border-slate-700">
+        <h2 class="text-xl font-semibold mb-4 flex items-center">
+          <svg class="w-5 h-5 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+          </svg>
+          AI Assistant
+        </h2>
+        <ChatPreview client:load />
+      </div>
+    </div>
+  </div>
+  
+  <!-- Performance Metrics Bar -->
+  <div class="mt-8 glass-effect rounded-xl p-4 border border-slate-700">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 text-center">
+      <div>
+        <p class="text-sm text-slate-400">Uptime</p>
+        <p class="text-lg font-semibold text-green-400">99.9%</p>
+      </div>
+      <div>
+        <p class="text-sm text-slate-400">Requests/Hour</p>
+        <p class="text-lg font-semibold text-blue-400">1,247</p>
+      </div>
+      <div>
+        <p class="text-sm text-slate-400">Success Rate</p>
+        <p class="text-lg font-semibold text-green-400">98.7%</p>
+      </div>
+      <div>
+        <p class="text-sm text-slate-400">Avg Processing</p>
+        <p class="text-lg font-semibold text-purple-400">2.3s</p>
+      </div>
+      <div>
+        <p class="text-sm text-slate-400">Storage Used</p>
+        <p class="text-lg font-semibold text-cyan-400">45.2GB</p>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Update dashboard stats in real-time
+  async function updateDashboardStats() {
+    try {
+      const response = await fetch('https://km-orchestrator.azurewebsites.net/api/simple-test');
+      const data = await response.json();
+      
+      // Update service count
+      document.getElementById('services-count').textContent = 
+        `${data.summary.healthy}/${data.summary.total}`;
+      
+      // Calculate average response time
+      const avgTime = data.services.reduce((sum, service) => 
+        sum + parseInt(service.responseTime), 0) / data.services.length;
+      document.getElementById('response-time').textContent = `${Math.round(avgTime)}ms`;
+      
+    } catch (error) {
+      console.error('Failed to update dashboard stats:', error);
+    }
+  }
+  
+  // Update every 30 seconds
+  updateDashboardStats();
+  setInterval(updateDashboardStats, 30000);
+</script>

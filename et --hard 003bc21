@@ -1,0 +1,30 @@
+003bc21 Fri Aug 15 17:16:02 2025 REPLACE: GraphRAG UI with clean, consistent style matching other services
+2315a96 Fri Aug 15 16:56:22 2025 FIX: Handle 'success' field in document response from km-mcp-sql-docs
+4025824 Fri Aug 15 16:41:28 2025 ADD: Missing /tools/get-documents-for-search endpoint for GraphRAG integration
+ac1954e Fri Aug 15 16:16:38 2025 FIX: Repair .gitignore pattern and deploy all MCP services with GraphRAG workflow
+a47132c Fri Aug 15 16:06:22 2025 FIX: Rename GraphRAG workflow file (remove space)
+26dfb5b Fri Aug 15 16:01:11 2025 FIX: Remove km-system/ from .gitignore and add km-mcp-graphrag service
+9263ce0 Fri Aug 15 15:53:23 2025 FORCE: Complete km-mcp-graphrag deployment
+d47821b Fri Aug 15 15:51:48 2025 ADD: km-mcp-graphrag service with knowledge graph analysis
+8f06251 Fri Aug 15 15:48:42 2025 ADD: km-mcp-graphrag service with knowledge graph analysis
+7185904 Fri Aug 15 15:46:06 2025 ADD: km-mcp-graphrag service with knowledge graph analysis
+b5820ad Fri Aug 15 15:29:18 2025 SECURITY: Remove OpenAI API key file and add to .gitignore
+1d2e50e Fri Aug 15 15:28:33 2025 SECURITY: Remove OpenAI API key file and add to .gitignore
+40b1433 Fri Aug 15 15:22:55 2025 ADD: km-mcp-graphrag service with knowledge graph analysis
+5a69423 Fri Aug 15 15:19:58 2025 ADD: km-mcp-graphrag service with knowledge graph analysis
+fedbd2e Fri Aug 15 14:39:34 2025 UPDATE: Interactive expandable UI for both search and LLM services
+f0e50a4 Fri Aug 15 14:19:11 2025 FORCE: Update to trigger deployment with fixed search endpoint
+9201fd6 Fri Aug 15 14:03:59 2025 UPDATE: Document integration - add search endpoint to docs service and improve search app
+07f4273 Fri Aug 15 13:40:43 2025 TEST: Trigger workflow with km-mcp-search change
+f7633d8 Fri Aug 15 13:37:55 2025 ADD: GitHub workflow for km-mcp-search deployment
+06c8a7e Fri Aug 15 13:30:22 2025 ADD: km-mcp-search service with intelligent document search
+ad74bc0 Fri Aug 15 12:59:17 2025 ADD: Interactive forms to clean MCP UI
+81a93c6 Fri Aug 15 11:37:52 2025 FIX: Async health check, better error handling, remove unused deps
+7557b40 Fri Aug 15 11:16:19 2025 FIX: FastAPI/Gunicorn compatibility - downgrade FastAPI to 0.100.1
+c86c7d9 Fri Aug 15 11:02:28 2025 FIX: Remove torch import test from workflow (external AI doesn't use torch)
+872f215 Fri Aug 15 10:57:53 2025 REMOVE: Old torch-dependent module files causing deployment errors
+3f6ceb2 Fri Aug 15 10:48:48 2025 UPDATE: External AI integration app.py with Azure OpenAI support
+26d61cb Fri Aug 15 10:41:26 2025 FIX: Use lightweight external AI dependencies (no torch/transformers)
+af6f5df Fri Aug 15 10:33:34 2025 RENAME: Complete km-mcp-llm + Azure OpenAI integration
+817dfc1 Fri Aug 15 09:56:53 2025 FIX: FastAPI/Gunicorn compatibility issue
+85ed6a0 Fri Aug 15 09:15:22 2025 ADD: km-mcp-phi4 AI analysis service with Phi-4 integration
