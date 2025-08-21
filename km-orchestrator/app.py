@@ -3,7 +3,8 @@ KM Orchestrator - Intelligent Request Routing for Knowledge Management System
 FastAPI service that routes requests across all MCP services
 Updated with CORS-aware service communication
 """
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form
+from typing import Optional
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -580,19 +581,59 @@ async def get_system_stats():
 
 @app.post("/api/upload")
 async def upload_document(request: Request):
-    """Upload document via orchestrator - FIXED JSON HANDLING"""
+    """Upload document via orchestrator - SUPPORTS BOTH JSON AND MULTIPART"""
     try:
-        data = await request.json()
+        # Check content type to handle both JSON and multipart
+        content_type = request.headers.get("content-type", "")
+        
+        if "application/json" in content_type:
+            # Handle JSON requests (your test case)
+            data = await request.json()
+            title = data.get("title", "Untitled Document")
+            content = data.get("content", "")
+            classification = data.get("classification", "unclassified")
+            file_type = data.get("file_type", "text")
+            
+        elif "multipart/form-data" in content_type:
+            # Handle multipart form data (your frontend)
+            form = await request.form()
+            
+            # Extract form fields
+            title = form.get("title", "Untitled Document")
+            classification = form.get("classification", "unclassified")
+            user_id = form.get("user_id", "anonymous")
+            
+            # Handle file upload
+            file_field = form.get("file")
+            if file_field and hasattr(file_field, 'read'):
+                # It's a file upload
+                file_content = await file_field.read()
+                content = file_content.decode('utf-8', errors='ignore')
+                file_type = getattr(file_field, 'content_type', 'text/plain')
+                
+                # Use filename as title if no title provided
+                if title == "Untitled Document" and hasattr(file_field, 'filename'):
+                    title = file_field.filename or "Uploaded File"
+            else:
+                # No file, use form content field
+                content = form.get("content", "")
+                file_type = "text"
+                
+        else:
+            return {
+                "success": False,
+                "message": f"Unsupported content type: {content_type}",
+                "status": "error"
+            }
         
         # Create proper JSON payload for km-mcp-sql-docs
         doc_payload = {
-            "title": data.get("title", "Untitled Document"),
-            "content": data.get("content", ""),
-            "file_type": data.get("file_type", "text"),
+            "title": title,
+            "content": content,
+            "file_type": file_type,
             "metadata": {
                 "source": "orchestrator_upload",
-                "classification": data.get("classification", "unclassified"),
-                "entities": data.get("entities", ""),
+                "classification": classification,
                 "created_by": "orchestrator"
             }
         }
@@ -609,25 +650,25 @@ async def upload_document(request: Request):
                 result = response.json()
                 return {
                     "success": True,
-                    "message": "Document uploaded successfully",
+                    "message": "Document uploaded successfully", 
                     "document_id": result.get("document_id"),
-                    "status": "success"  # Return SUCCESS, not error
+                    "status": "success"
                 }
             else:
+                logger.error(f"km-mcp-sql-docs error: {response.text}")
                 return {
                     "success": False,
                     "message": f"Upload failed: {response.text}",
-                    "status": "error",
-                    "debug_payload": doc_payload
+                    "status": "error"
                 }
                 
-    except Exception as e:
-        logger.error(f"Upload error: {e}")
-        return {
-            "success": False,
-            "message": f"Upload error: {str(e)}",
-            "status": "error"
-        }
+   except Exception as e:
+    logger.error(f"Upload error: {e}")
+    return {
+        "success": False,
+        "message": f"Upload error: {str(e)}",  # Show real error instead of hardcoded message
+        "status": "error"
+    }
 @app.post("/api/search")
 async def search_documents(request: Request):
     """Search documents via orchestrator - FIXED JSON HANDLING"""
@@ -766,9 +807,3 @@ async def simple_test():
             'unhealthy': len([s for s in results if s['status'] == 'unhealthy'])
         }
     }
-
-
-
-
-
-
