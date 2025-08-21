@@ -1,4 +1,4 @@
-﻿"""
+"""
 KM Orchestrator - Intelligent Request Routing for Knowledge Management System
 FastAPI service that routes requests across all MCP services
 Updated with CORS-aware service communication
@@ -55,7 +55,7 @@ async def dashboard():
     except FileNotFoundError:
         return HTMLResponse("""
         <html><body style="font-family: Arial; padding: 20px;">
-        <h1>🎯 KM Orchestrator</h1>
+        <h1>🔧 KM Orchestrator</h1>
         <p>Dashboard file not found. Please ensure index.html exists in public/ directory.</p>
         <a href="/docs">View API Documentation</a>
         </body></html>
@@ -384,13 +384,13 @@ async def detailed_service_diagnostics():
     for service_name, result in results.items():
         if result["status"] == "unreachable":
             if "timeout" in result.get("error", "").lower():
-                recommendations.append(f"🕐 {service_name}: Service timeout - check if service is running")
+                recommendations.append(f"⚠️ {service_name}: Service timeout - check if service is running")
             elif "connection" in result.get("error", "").lower():
-                recommendations.append(f"🚫 {service_name}: Connection refused - service appears down")
+                recommendations.append(f"🚨 {service_name}: Connection refused - service appears down")
             else:
                 recommendations.append(f"❓ {service_name}: Check service deployment and URL")
         elif result["status"] == "unhealthy":
-            recommendations.append(f"⚠️ {service_name}: Service responding but unhealthy")
+            recommendations.append(f"⚡ {service_name}: Service responding but unhealthy")
     
     if not recommendations:
         recommendations.append("✅ All services are healthy and responding normally")
@@ -662,13 +662,14 @@ async def upload_document(request: Request):
                     "status": "error"
                 }
                 
-   except Exception as e:
-    logger.error(f"Upload error: {e}")
-    return {
-        "success": False,
-        "message": f"Upload error: {str(e)}",  # Show real error instead of hardcoded message
-        "status": "error"
-    }
+    except Exception as e:
+        logger.error(f"Upload error: {e}")
+        return {
+            "success": False,
+            "message": f"Upload error: {str(e)}",  # Show real error instead of hardcoded message
+            "status": "error"
+        }
+
 @app.post("/api/search")
 async def search_documents(request: Request):
     """Search documents via orchestrator - FIXED JSON HANDLING"""
@@ -717,7 +718,9 @@ async def search_documents(request: Request):
             "message": f"Search error: {str(e)}",
             "results": [],
             "status": "error"
-        }@app.get("/fixed-diagnostics")
+        }
+
+@app.get("/fixed-diagnostics")
 async def fixed_diagnostics():
     """Fixed diagnostics with server-side proxy calls"""
     try:
@@ -761,11 +764,12 @@ async def debug_cors_page():
         return FileResponse("public/debug-cors.html")
     except FileNotFoundError:
         return HTMLResponse("<h1>Debug page not found</h1>")
+
 @app.get("/api/simple-test")
 async def simple_test():
     """Health check for all MCP services"""
     services = [
-        {'name': 'km-mcp-sql-docs', 'title': 'SQL Docs Service', 'icon': '📚', 'url': SERVICES['km-mcp-sql-docs']},
+        {'name': 'km-mcp-sql-docs', 'title': 'SQL Docs Service', 'icon': '📄', 'url': SERVICES['km-mcp-sql-docs']},
         {'name': 'km-mcp-search', 'title': 'Search Service', 'icon': '🔍', 'url': SERVICES['km-mcp-search']},
         {'name': 'km-mcp-llm', 'title': 'LLM Service', 'icon': '🤖', 'url': SERVICES['km-mcp-llm']},
         {'name': 'km-mcp-graphrag', 'title': 'GraphRAG Service', 'icon': '🕸️', 'url': SERVICES['km-mcp-graphrag']}
