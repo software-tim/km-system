@@ -1,0 +1,16 @@
+﻿name: 🎉 Upload Works Milestone
+on:
+  workflow_dispatch:
+    inputs:
+      milestone:
+        description: 'Milestone description'
+        required: true
+        default: 'Upload Works - Knowledge Management System fully functional'
+
+jobs:
+  milestone:
+    runs-on: ubuntu-latest
+    name: Record Milestone - ${{ github.event.inputs.milestone }}
+    steps:
+      - name: Record milestone
+        run: echo "Milestone recorded - Upload functionality working"
