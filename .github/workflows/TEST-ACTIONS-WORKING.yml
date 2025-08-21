@@ -1,0 +1,14 @@
+﻿name: ⚠️ GITHUB ACTIONS TEST - MUST RUN
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⚠️ TESTING IF GITHUB ACTIONS WORKS AT ALL
+        run: echo "THIS SHOULD ALWAYS SHOW UP IN ACTIONS"
+      - name: Show timestamp
+        run: date
