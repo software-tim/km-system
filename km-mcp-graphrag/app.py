@@ -120,7 +120,9 @@ class KnowledgeGraph:
             entity_types[entity.type] += 1
 
         for rel in self.relationships:
-            relationship_types[rel.relationship_type] += 1
+            # Normalize relationship type to avoid duplicate keys
+            normalized_type = rel.relationship_type.upper()
+            relationship_types[normalized_type] += 1
 
         return {
             "total_entities": len(self.entities),
