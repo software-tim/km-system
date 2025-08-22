@@ -754,19 +754,39 @@ async def store_document(request: Request):
             "metadata": metadata
         }
         
-        # Store in database (assuming you have a database function)
+        # Store in database using the proper doc_ops method
         try:
-            # Call your existing database storage function
-            # This part depends on your existing database code
-            document_id = await store_document_in_database(doc_data)
+            # Create document object for storage
+            from km_docs_schemas import DocumentCreate
             
-            return {
-                "success": True,
-                "message": "Document stored successfully",
-                "document_id": document_id,
-                "title": title,
-                "content_length": len(content)
-            }
+            doc = DocumentCreate(
+                title=title,
+                content=content,
+                classification=metadata.get("classification", "unclassified"),
+                entities=metadata.get("entities", []),
+                metadata=metadata,
+                file_data=None,
+                file_name=None,
+                file_type=file_type,
+                file_size=None
+            )
+            
+            # Use the proper doc_ops method
+            result = await doc_ops.store_document(doc)
+            
+            if result.get("success"):
+                return {
+                    "success": True,
+                    "message": "Document stored successfully",
+                    "document_id": result.get("document_id"),
+                    "title": title,
+                    "content_length": len(content)
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": result.get("error", "Failed to store document")
+                }
             
         except Exception as db_error:
             return {
@@ -788,13 +808,7 @@ async def store_document(request: Request):
             "error_type": type(e).__name__
         }
 
-# Helper function for database storage
-async def store_document_in_database(doc_data):
-    """Store document in database - implement based on your existing code"""
-    # This should call your existing database storage logic
-    # Return a document ID
-    import uuid
-    return str(uuid.uuid4())
+# Helper function removed - now using doc_ops.store_document directly
 
 if __name__ == "__main__":
     import uvicorn
