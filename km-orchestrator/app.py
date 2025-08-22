@@ -517,12 +517,13 @@ async def get_document_results(document_id: str):
     try:
         # First, get the document from the database
         async with httpx.AsyncClient(timeout=30.0) as client:
-            # Search for the specific document
+            # Search for the specific document by ID
+            # First try to get all documents and filter by ID
             search_response = await client.post(
                 f"{SERVICES['km-mcp-sql-docs']}/tools/search-documents",
                 json={
-                    "query": document_id,
-                    "limit": 1,
+                    "query": None,  # Get all documents
+                    "limit": 100,
                     "offset": 0
                 }
             )
@@ -533,11 +534,16 @@ async def get_document_results(document_id: str):
             search_data = search_response.json()
             documents = search_data.get("documents", [])
             
-            if not documents:
-                raise HTTPException(status_code=404, detail="Document not found")
+            # Filter documents by ID
+            matching_docs = [doc for doc in documents if str(doc.get("id")) == document_id]
+            
+            if not matching_docs:
+                # Log for debugging
+                logger.info(f"Document {document_id} not found. Available IDs: {[doc.get('id') for doc in documents[:10]]}")
+                raise HTTPException(status_code=404, detail=f"Document {document_id} not found")
             
             # Get the first matching document
-            doc = documents[0]
+            doc = matching_docs[0]
             
             # Extract entities from the document content or metadata
             # This is a simplified version - in production you'd use the GraphRAG service
