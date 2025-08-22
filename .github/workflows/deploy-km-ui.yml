@@ -4,7 +4,7 @@ on:
   push:
     branches: [ master, main ]
     paths:
-      - 'km-orchestrator-ui/**'
+      - 'km-ui/**'
   workflow_dispatch:
 
 jobs:
@@ -19,19 +19,19 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: km-orchestrator-ui/package-lock.json
+        cache-dependency-path: km-ui/package-lock.json
     
     - name: Install dependencies
       run: npm ci
-      working-directory: ./km-orchestrator-ui
+      working-directory: ./km-ui
     
     - name: Build application
       run: npm run build
-      working-directory: ./km-orchestrator-ui
+      working-directory: ./km-ui
       
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
-        app-name: 'km-orchestrator-ui'
+        app-name: 'km-ui'
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_KM_UI }}
-        package: ./km-orchestrator-ui/dist
+        package: ./km-ui/dist
