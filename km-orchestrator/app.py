@@ -807,27 +807,51 @@ async def upload_document_with_working_processing_pipeline(request: Request):
         logger.info("🔄 Starting upload processing pipeline...")
         content_type = request.headers.get("content-type", "")
         
+        # Initialize file info variables
+        file_name = None
+        file_size = 0
+        file_data_base64 = None
+        
         if "application/json" in content_type:
             data = await request.json()
             title = data.get("title", "Untitled Document")
             content = data.get("content", "")
             classification = data.get("classification", "unclassified")
             file_type = data.get("file_type", "text")
+            file_name = data.get("file_name", title)
+            file_size = len(content.encode('utf-8'))
+            
+            # Store content as base64
+            import base64
+            file_data_base64 = base64.b64encode(content.encode('utf-8')).decode('utf-8')
         elif "multipart/form-data" in content_type:
             form = await request.form()
             title = form.get("title", "Untitled Document")
             classification = form.get("classification", "unclassified")
+            
+            # Initialize file info
+            file_name = None
+            file_size = 0
+            file_data_base64 = None
             
             file_field = form.get("file")
             if file_field and hasattr(file_field, 'read'):
                 file_content = await file_field.read()
                 content = file_content.decode('utf-8', errors='ignore')
                 file_type = getattr(file_field, 'content_type', 'text/plain')
-                if title == "Untitled Document" and hasattr(file_field, 'filename'):
-                    title = file_field.filename or "Uploaded File"
+                file_name = getattr(file_field, 'filename', None)
+                file_size = len(file_content)
+                
+                # Store full file content as base64
+                import base64
+                file_data_base64 = base64.b64encode(file_content).decode('utf-8')
+                
+                if title == "Untitled Document" and file_name:
+                    title = file_name
             else:
                 content = form.get("content", "")
                 file_type = "text"
+                file_size = len(content.encode('utf-8'))
         else:
             return {"success": False, "message": f"Unsupported content type: {content_type}", "status": "error"}
 
@@ -848,14 +872,22 @@ async def upload_document_with_working_processing_pipeline(request: Request):
         
         doc_payload = {
             "title": title,
-            "content": content,
+            "content": content,  # Full content, not truncated
             "file_type": file_type,
+            "file_name": file_name,
+            "file_size": file_size,
+            "file_data": file_data_base64,  # Store full document as base64
             "metadata": {
                 "source": "orchestrator_upload",
                 "classification": classification,
                 "created_by": "orchestrator",
                 "processing_status": "in_progress",
-                "original_content_length": len(content)
+                "original_content_length": len(content),
+                "file_info": {
+                    "name": file_name,
+                    "size": file_size,
+                    "type": file_type
+                }
             }
         }
         
@@ -885,6 +917,7 @@ async def upload_document_with_working_processing_pipeline(request: Request):
             await asyncio.sleep(2.0 - elapsed)
         processing_results["step_timings"]["document_storage"] = time.time() - step_start
         logger.info(f"✅ Document stored with ID: {processing_results['document_id']} (took {processing_results['step_timings']['document_storage']:.2f}s)")
+        logger.info(f"📊 Document details - Content length: {len(content)}, File size: {file_size}, File name: {file_name}")
 
         # STEP 2: AI Classification with LLM (70-130 second estimate)
         step_start = time.time()
@@ -1314,7 +1347,13 @@ async def upload_document_with_working_processing_pipeline(request: Request):
                         "chunk_size": 500,
                         "chunking_method": "intelligent_paragraph"
                     },
-                    "top_chunks": processing_results.get("top_chunks", [])[:25]  # Store top 25 chunks
+                    "top_chunks": processing_results.get("top_chunks", [])[:25],  # Store top 25 chunks
+                    "file_info": {
+                        "name": file_name,
+                        "size": file_size,
+                        "type": file_type,
+                        "has_full_content": file_data_base64 is not None
+                    }
                 }
             }
             
