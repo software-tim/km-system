@@ -1,0 +1,176 @@
+{
+  "document_id": "91",
+  "document_title": "Guide to MCP",
+  "document_metadata": {
+    "upload_date": "",
+    "file_type": "application/octet-stream",
+    "file_size": 203,
+    "classification": "technical"
+  },
+  "ai_classification": {
+    "category": "technical",
+    "domains": [
+      "Data Science",
+      "Artificial Intelligence",
+      "Information Technology"
+    ],
+    "themes": [
+      "Model Context Protocol",
+      "AI Integration",
+      "Standardized Interface",
+      "External Tools and Resources",
+      "AI Systems"
+    ],
+    "complexity": "intermediate",
+    "summary": "The document is an illustrated guidebook on Model Context Protocol (MCP) in the field of data science and artificial intelligence. It explains the purpose of MCP, its architecture, and its role as a universal connector for AI systems to interact with external tools and resources.",
+    "confidence": 0.95,
+    "keywords": [
+      "MCP",
+      "AI models",
+      "external tools",
+      "standardized interface",
+      "AI integration",
+      "data science",
+      "artificial intelligence",
+      "framework",
+      "universal connector"
+    ],
+    "language": "English"
+  },
+  "processing_summary": {
+    "chunks_count": 310,
+    "entities_count": 7,
+    "relationships_count": 4,
+    "themes_count": 5,
+    "classification_confidence": 0.95,
+    "processing_time": "Unknown"
+  },
+  "entities": [
+    {
+      "name": "Avi Chawla",
+      "type": "PERSON",
+      "description": "Key entity identified in document",
+      "confidence": 0.9,
+      "context": "Avi Chawla & Akshay Pachaar"
+    },
+    {
+      "name": "Akshay Pachaar",
+      "type": "PERSON",
+      "description": "Key entity identified in document",
+      "confidence": 0.9,
+      "context": "Avi Chawla & Akshay Pachaar"
+    },
+    {
+      "name": "MCP",
+      "type": "CONCEPT",
+      "description": "Key entity identified in document",
+      "confidence": 0.8,
+      "context": "MCP"
+    },
+    {
+      "name": "Data Science",
+      "type": "CONCEPT",
+      "description": "Key entity identified in document",
+      "confidence": 0.7,
+      "context": "Daily Dose of Data Science"
+    },
+    {
+      "name": "THE ILLUSTRATEDGUIDEBOOK",
+      "type": "CONCEPT",
+      "description": "Key entity identified in document",
+      "confidence": 0.8,
+      "context": "THE ILLUSTRATEDGUIDEBOOK"
+    },
+    {
+      "name": "Model Context Protocol",
+      "type": "CONCEPT",
+      "description": "Key entity identified in document",
+      "confidence": 0.9,
+      "context": "Model Context Protocol"
+    },
+    {
+      "name": "Claude Desktop",
+      "type": "CONCEPT",
+      "description": "Key entity identified in document",
+      "confidence": 0.8,
+      "context": "Claude Desktop"
+    }
+  ],
+  "relationships": [
+    {
+      "source": "Avi Chawla",
+      "target": "Akshay Pachaar",
+      "type": "CO-AUTHOR",
+      "confidence": 0.9
+    },
+    {
+      "source": "MCP",
+      "target": "Model Context Protocol",
+      "type": "RELATED_TO",
+      "confidence": 0.8
+    },
+    {
+      "source": "Model Context Protocol",
+      "target": "MCP",
+      "type": "RELATED_TO",
+      "confidence": 0.8
+    },
+    {
+      "source": "Model Context Protocol",
+      "target": "Claude Desktop",
+      "type": "RELATED_TO",
+      "confidence": 0.7
+    }
+  ],
+  "chunks": [
+    {
+      "id": 1,
+      "content": "2025 EDITION\n\nFREE\n\nMCP\n\nDaily Dose of\nData Science\n\nAvi Chawla & Akshay Pachaar\nD a i l y D o s e o f D S . c o m\n\nTHE ILLUSTRATEDGUIDEBOOK \fDailyDoseofDS.com\n\nHow to make the most out of\nthis book a...",
+      "metadata": "Chunk 1 of 310",
+      "start_position": 0,
+      "length": 203
+    }
+  ],
+  "themes": [
+    {
+      "name": "Model Context Protocol",
+      "confidence": 0.9,
+      "type": "theme"
+    },
+    {
+      "name": "AI Integration",
+      "confidence": 0.9,
+      "type": "theme"
+    },
+    {
+      "name": "Standardized Interface",
+      "confidence": 0.9,
+      "type": "theme"
+    },
+    {
+      "name": "External Tools and Resources",
+      "confidence": 0.9,
+      "type": "theme"
+    },
+    {
+      "name": "AI Systems",
+      "confidence": 0.9,
+      "type": "theme"
+    }
+  ],
+  "insights": [
+    "Summary: The document is an illustrated guidebook on Model Context Protocol (MCP) in the field of data science and artificial intelligence. It explains the purpose of MCP, its architecture, and its role as a universal connector for AI systems to interact with external tools and resources.",
+    "Document type: Technical",
+    "Content complexity: Intermediate level",
+    "Primary domains: Data Science, Artificial Intelligence, Information Technology",
+    "Document contains 310 content chunks for detailed analysis",
+    "Identified 7 key entities with 4 relationships",
+    "Language: English",
+    "Classification confidence: 95%"
+  ],
+  "knowledge_graph": {
+    "nodes": 7,
+    "edges": 4,
+    "clusters": 2
+  }
+}

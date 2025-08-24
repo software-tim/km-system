@@ -607,26 +607,32 @@ async def get_document_results(document_id: str):
                     "confidence": rel.get("confidence", 0.7)
                 })
                 
-            # Get the actual chunks count from metadata if available
+            # Get chunks from metadata if available
+            stored_chunks = metadata.get("top_chunks", [])
             processing_summary = metadata.get("processing_summary", {})
             chunks_created = processing_summary.get("chunks_created", 0)
             
-            # Generate representative chunks for display
             chunks = []
-            chunk_size = 500
-            total_chunks = chunks_created if chunks_created > 0 else (len(content) + chunk_size - 1) // chunk_size
             
-            # Only show first 5 chunks for UI performance
-            for i, start in enumerate(range(0, min(len(content), chunk_size * 5), chunk_size)):
-                chunk_content = content[start:start + chunk_size]
-                if chunk_content.strip():
-                    chunks.append({
-                        "id": i + 1,
-                        "content": chunk_content + ("..." if start + chunk_size < len(content) else ""),
-                        "metadata": f"Chunk {i + 1} of {total_chunks}",
-                        "start_position": start,
-                        "length": len(chunk_content)
-                    })
+            if stored_chunks:
+                # Use stored chunks (show first 5 for UI)
+                chunks = stored_chunks[:5]
+                print(f"Using {len(chunks)} stored chunks from metadata")
+            else:
+                # Fallback: Generate chunks from content
+                chunk_size = 500
+                total_chunks = chunks_created if chunks_created > 0 else (len(content) + chunk_size - 1) // chunk_size
+                
+                # Only show first 5 chunks for UI performance
+                for i, start in enumerate(range(0, min(len(content), chunk_size * 5), chunk_size)):
+                    chunk_content = content[start:start + chunk_size]
+                    if chunk_content.strip():
+                        chunks.append({
+                            "chunk_id": i + 1,
+                            "content": chunk_content + ("..." if start + chunk_size < len(content) else ""),
+                            "length": len(chunk_content),
+                            "type": "generated"
+                        })
             
             # Extract themes from metadata or AI classification
             themes = []
@@ -1082,6 +1088,9 @@ async def upload_document_with_working_processing_pipeline(request: Request):
             "chunk_types": list(set(c["type"] for c in chunks))
         }
         
+        # Store top 25 chunks for retrieval
+        processing_results["top_chunks"] = chunks[:25]
+        
         # Ensure 2-second minimum for this step
         elapsed = time.time() - step_start
         if elapsed < 2.0:
@@ -1304,7 +1313,8 @@ async def upload_document_with_working_processing_pipeline(request: Request):
                         "total_chunks": processing_results["chunks_created"],
                         "chunk_size": 500,
                         "chunking_method": "intelligent_paragraph"
-                    }
+                    },
+                    "top_chunks": processing_results.get("top_chunks", [])[:25]  # Store top 25 chunks
                 }
             }
             
