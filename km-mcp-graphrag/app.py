@@ -649,22 +649,30 @@ async def get_graph_stats():
 
 @app.post("/tools/build-graph-from-documents")
 async def build_graph_from_documents(request: Request):
-    """Build knowledge graph from all documents in the document service"""
+    """Build knowledge graph from documents - can either fetch from service or accept documents in payload"""
     try:
-        # Get documents from the document service
-        async with aiohttp.ClientSession() as session:
-            # Call the document service to get all documents
-            async with session.post(f"{config.km_docs_url}/tools/get-documents-for-search",
-                                  json={"limit": 1000}) as response:
-                if response.status != 200:
-                    raise HTTPException(status_code=500, detail="Failed to fetch documents")
+        data = await request.json()
+        
+        # Check if documents are provided in the payload
+        if "documents" in data:
+            documents = data["documents"]
+            fetch_from_service = False
+        else:
+            # Fallback to fetching from document service
+            fetch_from_service = True
+            async with aiohttp.ClientSession() as session:
+                # Call the document service to get all documents
+                async with session.post(f"{config.km_docs_url}/tools/get-documents-for-search",
+                                      json={"limit": 1000}) as response:
+                    if response.status != 200:
+                        raise HTTPException(status_code=500, detail="Failed to fetch documents")
 
-                docs_data = await response.json()
-                # Handle both "status" and "success" response formats
-                if docs_data.get("success") or docs_data.get("status") == "success":
-                    documents = docs_data.get("documents", [])
-                else:
-                    documents = []
+                    docs_data = await response.json()
+                    # Handle both "status" and "success" response formats
+                    if docs_data.get("success") or docs_data.get("status") == "success":
+                        documents = docs_data.get("documents", [])
+                    else:
+                        documents = []
 
         if not documents:
             return {
