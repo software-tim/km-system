@@ -91,6 +91,12 @@ class ExternalAIService:
                                 "model": ai_config.azure_deployment_name,
                                 "success": True
                             }
+                        else:
+                            error_text = await response.text()
+                            return {
+                                "error": f"Azure OpenAI API error (status {response.status}): {error_text}",
+                                "success": False
+                            }
             
             # Fallback to OpenAI
             elif self.openai_available:
@@ -115,6 +121,12 @@ class ExternalAIService:
                                 "provider": "OpenAI",
                                 "model": "gpt-3.5-turbo",
                                 "success": True
+                            }
+                        else:
+                            error_text = await response.text()
+                            return {
+                                "error": f"OpenAI API error (status {response.status}): {error_text}",
+                                "success": False
                             }
             
             else:
@@ -167,6 +179,12 @@ Answer:"""
                                 "provider": "Azure OpenAI",
                                 "success": True
                             }
+                        else:
+                            error_text = await response.text()
+                            return {
+                                "error": f"Azure OpenAI API error (status {response.status}): {error_text}",
+                                "success": False
+                            }
             
             elif self.openai_available:
                 headers = {
@@ -189,6 +207,12 @@ Answer:"""
                                 "answer": result["choices"][0]["message"]["content"],
                                 "provider": "OpenAI",
                                 "success": True
+                            }
+                        else:
+                            error_text = await response.text()
+                            return {
+                                "error": f"OpenAI API error (status {response.status}): {error_text}",
+                                "success": False
                             }
             
             else:
@@ -238,6 +262,12 @@ Answer:"""
                                 "provider": "Azure OpenAI",
                                 "style": style,
                                 "success": True
+                            }
+                        else:
+                            error_text = await response.text()
+                            return {
+                                "error": f"Azure OpenAI API error (status {response.status}): {error_text}",
+                                "success": False
                             }
             
             elif self.openai_available:
