@@ -16,6 +16,7 @@ from datetime import datetime
 import logging
 import os
 import json
+import sys
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -69,7 +70,12 @@ async def health_check():
         "status": "healthy",
         "service": "km-orchestrator",
         "timestamp": datetime.utcnow().isoformat(),
-        "version": "1.0.0"
+        "version": "1.1.0-json-fix",
+        "has_json_import": "json" in globals(),
+        "imports_check": {
+            "json": "json" in sys.modules if "sys" in globals() else "sys not imported",
+            "datetime": "datetime" in sys.modules if "sys" in globals() else "sys not imported"
+        }
     }
 
 @app.get("/services/status")
