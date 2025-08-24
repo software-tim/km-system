@@ -585,25 +585,32 @@ async def get_document_results(document_id: str):
                     # Format relationships
                     for rel in raw_relationships[:10]:  # Limit to top 10 relationships
                         relationships.append({
-                            "source": rel.get("source", ""),
-                            "target": rel.get("target", ""),
-                            "type": rel.get("relationship", "related_to"),
+                            "source": rel.get("source_entity", rel.get("source", "")),
+                            "target": rel.get("target_entity", rel.get("target", "")),
+                            "type": rel.get("relationship_type", rel.get("type", "related_to")),
                             "confidence": rel.get("confidence", 0.7)
                         })
             except Exception as e:
                 logger.warning(f"GraphRAG entity extraction failed: {e}")
                 # Fallback to basic entity extraction if GraphRAG fails
                 
-            # Generate real chunks
+            # Get the actual chunks count from metadata if available
+            processing_summary = metadata.get("processing_summary", {})
+            chunks_created = processing_summary.get("chunks_created", 0)
+            
+            # Generate representative chunks for display
             chunks = []
             chunk_size = 500
-            for i, start in enumerate(range(0, len(content), chunk_size)):
+            total_chunks = chunks_created if chunks_created > 0 else (len(content) + chunk_size - 1) // chunk_size
+            
+            # Only show first 5 chunks for UI performance
+            for i, start in enumerate(range(0, min(len(content), chunk_size * 5), chunk_size)):
                 chunk_content = content[start:start + chunk_size]
                 if chunk_content.strip():
                     chunks.append({
                         "id": i + 1,
                         "content": chunk_content + ("..." if start + chunk_size < len(content) else ""),
-                        "metadata": f"Chunk {i + 1} of {(len(content) + chunk_size - 1) // chunk_size}",
+                        "metadata": f"Chunk {i + 1} of {total_chunks}",
                         "start_position": start,
                         "length": len(chunk_content)
                     })
@@ -648,7 +655,7 @@ async def get_document_results(document_id: str):
             
             # Add processing insights
             insights.extend([
-                f"Document contains {len(chunks)} content chunks for detailed analysis",
+                f"Document contains {total_chunks} content chunks for detailed analysis",
                 f"Identified {len(entities)} key entities with {len(relationships)} relationships",
                 f"Language: {ai_classification.get('language', 'English')}",
                 f"Classification confidence: {ai_classification.get('confidence', 0.0) * 100:.0f}%"
@@ -656,7 +663,7 @@ async def get_document_results(document_id: str):
             
             # Generate processing summary
             processing_summary = {
-                "chunks_count": len(chunks),
+                "chunks_count": total_chunks,
                 "entities_count": len(entities),
                 "relationships_count": len(relationships),
                 "themes_count": len(themes),
@@ -678,7 +685,7 @@ async def get_document_results(document_id: str):
                 "processing_summary": processing_summary,
                 "entities": entities,
                 "relationships": relationships,
-                "chunks": chunks[:5],  # Limit chunks for UI performance
+                "chunks": chunks,  # Already limited to 5 chunks above
                 "themes": themes,
                 "insights": insights,
                 "knowledge_graph": {
@@ -1237,6 +1244,38 @@ async def upload_document_with_working_processing_pipeline(request: Request):
 
         total_time = time.time() - start_time
         logger.info(f"✅ Complete processing pipeline finished in {total_time:.2f} seconds")
+
+        # Store final processing summary in metadata
+        try:
+            final_metadata_update = {
+                "document_id": processing_results["document_id"],
+                "metadata": {
+                    "ai_classification": processing_results.get("ai_classification", {}),
+                    "classification": classification,
+                    "keywords": processing_results.get("ai_classification", {}).get("keywords", []),
+                    "summary": processing_results.get("ai_classification", {}).get("summary", ""),
+                    "processing_status": "completed",
+                    "processing_timestamp": datetime.now().isoformat(),
+                    "processing_summary": {
+                        "total_time_seconds": round(total_time, 2),
+                        "chunks_created": processing_results["chunks_created"],
+                        "entities_extracted": processing_results["entities_extracted"],
+                        "relationships_found": processing_results["relationships_found"],
+                        "graphrag_updated": processing_results["graphrag_updated"]
+                    }
+                }
+            }
+            
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                await client.post(
+                    f"{SERVICES['km-mcp-sql-docs']}/tools/update-document-metadata",
+                    json=final_metadata_update,
+                    headers={"Content-Type": "application/json"}
+                )
+                logger.info(f"✅ Final metadata update completed for document {processing_results['document_id']}")
+        except Exception as e:
+            logger.error(f"Failed to update final metadata: {e}")
+            # Continue anyway - processing was successful
 
         # Return comprehensive results with validation
         return {
