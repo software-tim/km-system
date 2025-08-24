@@ -812,53 +812,86 @@ async def store_document(request: Request):
 @app.post("/tools/update-document-metadata")
 async def update_document_metadata(request: Request):
     """Update document metadata including AI classification results"""
+    logger.info("📨 RECEIVED METADATA UPDATE REQUEST")
+    
     try:
         # Parse request data
         request_data = await request.json()
+        logger.info(f"📨 Request data type: {type(request_data)}")
+        logger.info(f"📨 Full request data: {json.dumps(request_data, indent=2)}")
         
         document_id = request_data.get("document_id")
         metadata_updates = request_data.get("metadata", {})
         
+        logger.info(f"📨 Document ID: {document_id}")
+        logger.info(f"📨 Metadata updates keys: {list(metadata_updates.keys())}")
+        logger.info(f"📨 Metadata updates: {json.dumps(metadata_updates, indent=2)}")
+        
         if not document_id:
+            logger.error("❌ No document_id provided in request")
             return {"success": False, "error": "document_id is required"}
             
         # Get current document
+        logger.info(f"🔍 Fetching document {document_id} from database")
         doc = await doc_ops.get_document(document_id)
+        
         if not doc:
+            logger.error(f"❌ Document {document_id} not found in database")
             return {"success": False, "error": f"Document {document_id} not found"}
+        
+        logger.info(f"✅ Found document {document_id}")
+        logger.info(f"📄 Current document metadata type: {type(doc.get('metadata'))}")
+        logger.info(f"📄 Current document metadata: {doc.get('metadata')}")
             
         # Merge metadata updates
-        current_metadata = doc.metadata or {}
+        current_metadata = doc.get('metadata') or {}
         if isinstance(current_metadata, str):
             try:
+                logger.info("📄 Parsing string metadata to JSON")
                 current_metadata = json.loads(current_metadata)
-            except:
+            except Exception as parse_error:
+                logger.error(f"❌ Failed to parse metadata JSON: {parse_error}")
                 current_metadata = {}
-                
+        
+        logger.info(f"📄 Current metadata after parsing: {json.dumps(current_metadata, indent=2)}")
+        
         # Update metadata
         current_metadata.update(metadata_updates)
+        logger.info(f"📝 Updated metadata: {json.dumps(current_metadata, indent=2)}")
         
         # Update document
+        logger.info(f"💾 Creating DocumentUpdate object")
         update_data = DocumentUpdate(metadata=current_metadata)
+        logger.info(f"💾 DocumentUpdate object created: {update_data}")
+        
+        logger.info(f"💾 Calling doc_ops.update_document({document_id}, update_data)")
         result = await doc_ops.update_document(document_id, update_data)
+        logger.info(f"💾 doc_ops.update_document result: {result}")
+        logger.info(f"💾 Result type: {type(result)}")
         
         if result:
+            logger.info(f"✅ Document {document_id} metadata updated successfully")
             return {
                 "success": True,
                 "message": "Document metadata updated successfully",
-                "document_id": document_id
+                "document_id": document_id,
+                "update_result": str(result)
             }
         else:
+            logger.error(f"❌ doc_ops.update_document returned False/None")
             return {
                 "success": False,
-                "error": "Failed to update document metadata"
+                "error": "Failed to update document metadata - update_document returned False"
             }
             
     except Exception as e:
-        logger.error(f"Error updating document metadata: {str(e)}")
+        logger.error(f"❌ EXCEPTION in update_document_metadata: {str(e)}")
+        logger.error(f"❌ Exception type: {type(e).__name__}")
+        logger.error(f"❌ Full traceback:", exc_info=True)
         return {
             "success": False,
-            "error": f"Failed to update metadata: {str(e)}"
+            "error": f"Failed to update metadata: {str(e)}",
+            "exception_type": type(e).__name__
         }
 
 # Helper function removed - now using doc_ops.store_document directly

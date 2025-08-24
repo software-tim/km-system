@@ -275,57 +275,100 @@ class DocumentOperations:
 
     async def update_document(self, document_id: int, update_data):
         """Update document with new data including metadata"""
+        logger.info(f"🔧 UPDATE_DOCUMENT CALLED - Doc ID: {document_id}")
+        logger.info(f"🔧 Update data type: {type(update_data)}")
+        logger.info(f"🔧 Update data attributes: {vars(update_data) if hasattr(update_data, '__dict__') else update_data}")
+        
         try:
+            logger.info(f"🔧 Connecting to database...")
             conn = pyodbc.connect(self.conn_str)
             cursor = conn.cursor()
+            logger.info(f"✅ Database connection established")
             
             # Build dynamic update query based on provided fields
             update_fields = []
             params = []
             
+            logger.info(f"🔧 Building update query...")
+            
             if update_data.title is not None:
+                logger.info(f"🔧 Adding title update: {update_data.title}")
                 update_fields.append("title = ?")
                 params.append(update_data.title)
                 
             if update_data.content is not None:
+                logger.info(f"🔧 Adding content update (length: {len(update_data.content)})")
                 update_fields.append("content = ?")
                 params.append(update_data.content)
                 
             if update_data.classification is not None:
+                logger.info(f"🔧 Adding classification update: {update_data.classification}")
                 update_fields.append("classification = ?")
                 params.append(update_data.classification)
                 
             if update_data.entities is not None:
+                entities_json = json.dumps(update_data.entities)
+                logger.info(f"🔧 Adding entities update: {entities_json}")
                 update_fields.append("entities = ?")
-                params.append(json.dumps(update_data.entities))
+                params.append(entities_json)
                 
             if update_data.metadata is not None:
+                metadata_json = json.dumps(update_data.metadata)
+                logger.info(f"🔧 Adding metadata update (length: {len(metadata_json)})")
+                logger.info(f"🔧 Metadata content: {metadata_json[:500]}..." if len(metadata_json) > 500 else f"🔧 Metadata content: {metadata_json}")
                 update_fields.append("metadata = ?")
-                params.append(json.dumps(update_data.metadata))
+                params.append(metadata_json)
             
             # Always update updated_at
             update_fields.append("updated_at = GETDATE()")
+            logger.info(f"🔧 Added updated_at field")
             
             # Add document_id as last parameter
             params.append(document_id)
             
             if update_fields:
                 query = f"UPDATE documents SET {', '.join(update_fields)} WHERE id = ?"
+                logger.info(f"🔧 SQL Query: {query}")
+                logger.info(f"🔧 Parameters count: {len(params)}")
+                logger.info(f"🔧 Parameters (excluding content): {[p[:100] if isinstance(p, str) and len(p) > 100 else p for i, p in enumerate(params[:-1])]}")
+                logger.info(f"🔧 Document ID parameter: {params[-1]}")
+                
+                logger.info(f"🔧 Executing SQL query...")
                 cursor.execute(query, params)
-                conn.commit()
                 
                 rows_affected = cursor.rowcount
+                logger.info(f"🔧 Rows affected: {rows_affected}")
+                
+                logger.info(f"🔧 Committing transaction...")
+                conn.commit()
+                logger.info(f"✅ Transaction committed successfully")
+                
                 cursor.close()
                 conn.close()
+                logger.info(f"✅ Database connection closed")
                 
-                return rows_affected > 0
+                if rows_affected > 0:
+                    logger.info(f"✅ Successfully updated document {document_id}")
+                    return True
+                else:
+                    logger.error(f"❌ No rows affected when updating document {document_id}")
+                    return False
             else:
+                logger.warning(f"⚠️ No fields to update for document {document_id}")
                 cursor.close()
                 conn.close()
                 return False
                 
         except Exception as e:
-            logger.error(f"Update document failed: {e}")
+            logger.error(f"❌ UPDATE_DOCUMENT EXCEPTION: {str(e)}")
+            logger.error(f"❌ Exception type: {type(e).__name__}")
+            logger.error(f"❌ Full traceback:", exc_info=True)
+            if 'conn' in locals():
+                try:
+                    conn.rollback()
+                    logger.info("🔧 Transaction rolled back")
+                except:
+                    pass
             return False
 
     async def delete_document(self, document_id: int):

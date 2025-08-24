@@ -919,6 +919,12 @@ async def upload_document_with_working_processing_pipeline(request: Request):
         
         # Update document metadata with classification results
         # Always update metadata if we have any classification data
+        logger.info(f"🔍 METADATA UPDATE CHECK - Doc ID: {processing_results['document_id']}")
+        logger.info(f"🔍 Classification results summary exists: {bool(classification_results.get('summary'))}")
+        logger.info(f"🔍 Classification results keywords: {classification_results.get('keywords', [])}")
+        logger.info(f"🔍 Classification results domains: {classification_results.get('domains', [])}")
+        logger.info(f"🔍 Full classification results: {json.dumps(classification_results, indent=2)}")
+        
         if classification_results.get("summary") or classification_results.get("keywords") or classification_results.get("domains"):
             try:
                 update_payload = {
@@ -927,11 +933,17 @@ async def upload_document_with_working_processing_pipeline(request: Request):
                         "ai_classification": classification_results,
                         "classification": classification_results.get("category", classification),
                         "keywords": classification_results.get("keywords", []),
-                        "summary": classification_results.get("summary", "")
+                        "summary": classification_results.get("summary", ""),
+                        "processing_status": "completed",
+                        "processing_timestamp": datetime.now().isoformat()
                     }
                 }
                 
                 # Update document with classification results
+                logger.info(f"📤 SENDING METADATA UPDATE for document {processing_results['document_id']}")
+                logger.info(f"📤 Update endpoint: {SERVICES['km-mcp-sql-docs']}/tools/update-document-metadata")
+                logger.info(f"📤 Full update payload: {json.dumps(update_payload, indent=2)}")
+                
                 async with httpx.AsyncClient(timeout=30.0) as client:
                     update_response = await client.post(
                         f"{SERVICES['km-mcp-sql-docs']}/tools/update-document-metadata",
@@ -939,13 +951,32 @@ async def upload_document_with_working_processing_pipeline(request: Request):
                         headers={"Content-Type": "application/json"}
                     )
                     
+                    response_text = update_response.text
+                    try:
+                        response_json = update_response.json()
+                    except:
+                        response_json = None
+                        
+                    logger.info(f"📥 UPDATE RESPONSE - Status: {update_response.status_code}")
+                    logger.info(f"📥 UPDATE RESPONSE - Headers: {dict(update_response.headers)}")
+                    logger.info(f"📥 UPDATE RESPONSE - Text: {response_text}")
+                    logger.info(f"📥 UPDATE RESPONSE - JSON: {json.dumps(response_json, indent=2) if response_json else 'Not JSON'}")
+                    
                     if update_response.status_code == 200:
-                        logger.info("✅ Document metadata updated with AI classification")
+                        logger.info("✅ Document metadata update request successful")
+                        if response_json:
+                            logger.info(f"✅ Update result: {response_json}")
                     else:
-                        logger.warning("⚠️ Failed to update document metadata")
+                        logger.error(f"❌ Failed to update document metadata - Status: {update_response.status_code}")
+                        logger.error(f"❌ Error response: {response_text}")
                         
             except Exception as e:
-                logger.error(f"❌ Metadata update error: {str(e)}")
+                logger.error(f"❌ METADATA UPDATE EXCEPTION: {str(e)}")
+                logger.error(f"❌ Exception type: {type(e).__name__}")
+                logger.error(f"❌ Full traceback:", exc_info=True)
+        else:
+            logger.warning(f"⚠️ SKIPPING METADATA UPDATE - No classification data found")
+            logger.warning(f"⚠️ Classification results were: {classification_results}")
         
         # Store classification results in processing results
         processing_results["ai_classification"] = classification_results

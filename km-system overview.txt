@@ -1,0 +1,13 @@
+lets start simple so you can catch up. i am building a knowlege management system in    │
+│   astro on azure, it uses fastapi. the ui is as web app called km-ui here is the          │
+│   km-syustem/km-ui/index.astro file that supports the ui for uploading documents, and     │
+│   viewing the results. the second layer is km-orchstrator located at                      │
+│   km-system/km-orchestrator/index.astro . km-orchestrator connects to km-mcp-sql-docs,    │
+│   km-mcp-llm, km-mcp-graphrag, km-mcp-search to get its results and then the             │
+│   orchestrator returns the integrated results back to km-ui. km-ui/index.astro is the     │
+│   home page, km-ui/upload/index.astro it the ui for uploading documents,                  │
+│   km-ui/upload/results/index.astro is the ui to view the integrated results of a          │
+│   document uploaded such as chunking, ai insights, graphrag insights, etc. my github      │
+│   resource group is km-group and i use github to publish. km-ui has its own deployment    │
+│   at km-system/km-ui/github/workflow, and all the other services are published from       │
+│   km-system/github/workflow.        
