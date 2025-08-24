@@ -554,45 +554,58 @@ async def get_document_results(document_id: str):
             # Extract AI classification data if available
             ai_classification = metadata.get("ai_classification", {})
             
-            # Get real entities from GraphRAG service
+            # Try to get entities and relationships from metadata first (persisted)
             entities = []
             relationships = []
-            try:
-                # Call GraphRAG for entity extraction
-                graphrag_response = await client.post(
-                    f"{SERVICES['km-mcp-graphrag']}/tools/extract-entities",
-                    json={
-                        "text": content[:4000],  # Limit content for efficiency
-                        "document_id": document_id
-                    }
-                )
-                
-                if graphrag_response.status_code == 200:
-                    graphrag_data = graphrag_response.json()
-                    raw_entities = graphrag_data.get("entities", [])
-                    raw_relationships = graphrag_data.get("relationships", [])
+            
+            # Check if we have persisted entities/relationships in metadata
+            persisted_entities = metadata.get("entities", [])
+            persisted_relationships = metadata.get("relationships", [])
+            
+            if persisted_entities and persisted_relationships:
+                # Use persisted data
+                raw_entities = persisted_entities
+                raw_relationships = persisted_relationships
+            else:
+                # Fallback to GraphRAG extraction if not persisted
+                try:
+                    # Call GraphRAG for entity extraction
+                    graphrag_response = await client.post(
+                        f"{SERVICES['km-mcp-graphrag']}/tools/extract-entities",
+                        json={
+                            "text": content[:4000],  # Limit content for efficiency
+                            "document_id": document_id
+                        }
+                    )
                     
-                    # Format entities with context
-                    for entity in raw_entities[:12]:  # Limit to top 12 entities
-                        entities.append({
-                            "name": entity.get("name", "Unknown"),
-                            "type": entity.get("type", "Concept"),
-                            "description": entity.get("description", f"Key entity identified in document"),
-                            "confidence": entity.get("confidence", 0.8),
-                            "context": entity.get("context", "")
-                        })
+                    if graphrag_response.status_code == 200:
+                        graphrag_data = graphrag_response.json()
+                        raw_entities = graphrag_data.get("entities", [])
+                        raw_relationships = graphrag_data.get("relationships", [])
                     
-                    # Format relationships
-                    for rel in raw_relationships[:10]:  # Limit to top 10 relationships
-                        relationships.append({
-                            "source": rel.get("source_entity", rel.get("source", "")),
-                            "target": rel.get("target_entity", rel.get("target", "")),
-                            "type": rel.get("relationship_type", rel.get("type", "related_to")),
-                            "confidence": rel.get("confidence", 0.7)
-                        })
-            except Exception as e:
-                logger.warning(f"GraphRAG entity extraction failed: {e}")
-                # Fallback to basic entity extraction if GraphRAG fails
+                except Exception as e:
+                    logger.warning(f"GraphRAG entity extraction failed: {e}")
+                    raw_entities = []
+                    raw_relationships = []
+                    
+            # Format entities with context
+            for entity in raw_entities[:12]:  # Limit to top 12 entities
+                entities.append({
+                    "name": entity.get("name", "Unknown"),
+                    "type": entity.get("type", "Concept"),
+                    "description": entity.get("description", f"Key entity identified in document"),
+                    "confidence": entity.get("confidence", 0.8),
+                    "context": entity.get("context", "")
+                })
+            
+            # Format relationships
+            for rel in raw_relationships[:10]:  # Limit to top 10 relationships
+                relationships.append({
+                    "source": rel.get("source_entity", rel.get("source", "")),
+                    "target": rel.get("target_entity", rel.get("target", "")),
+                    "type": rel.get("relationship_type", rel.get("type", "related_to")),
+                    "confidence": rel.get("confidence", 0.7)
+                })
                 
             # Get the actual chunks count from metadata if available
             processing_summary = metadata.get("processing_summary", {})
@@ -615,9 +628,14 @@ async def get_document_results(document_id: str):
                         "length": len(chunk_content)
                     })
             
-            # Extract real themes from AI classification
+            # Extract themes from metadata or AI classification
             themes = []
-            if ai_classification.get("themes"):
+            persisted_themes = metadata.get("themes", [])
+            
+            if persisted_themes:
+                # Use persisted themes
+                themes = persisted_themes
+            elif ai_classification.get("themes"):
                 for i, theme in enumerate(ai_classification["themes"][:5]):
                     themes.append({
                         "name": theme,
@@ -1098,8 +1116,10 @@ async def upload_document_with_working_processing_pipeline(request: Request):
                     if entity_result.get("status") == "success":
                         entities_extracted = entity_result.get("entities", [])
                         processing_results["entities_extracted"] = len(entities_extracted)
-                        # Store the result for later reference
+                        # Store the full result including entities and relationships
                         processing_results["entity_extraction_result"] = entity_result
+                        processing_results["entities_data"] = entity_result.get("entities", [])
+                        processing_results["relationships_data"] = entity_result.get("relationships", [])
                         
                         processing_results["validation_results"]["entity_extraction"] = {
                             "success": True,
@@ -1245,15 +1265,29 @@ async def upload_document_with_working_processing_pipeline(request: Request):
         total_time = time.time() - start_time
         logger.info(f"✅ Complete processing pipeline finished in {total_time:.2f} seconds")
 
-        # Store final processing summary in metadata
+        # Store final processing summary in metadata with ALL data
         try:
+            # Extract themes from AI classification
+            ai_class = processing_results.get("ai_classification", {})
+            themes = []
+            for theme in ai_class.get("themes", []):
+                themes.append({
+                    "name": theme,
+                    "confidence": 0.9,
+                    "type": "theme"
+                })
+            
+            # Create tags from keywords for automatic tagging
+            tags = ai_class.get("keywords", [])
+            
             final_metadata_update = {
                 "document_id": processing_results["document_id"],
                 "metadata": {
-                    "ai_classification": processing_results.get("ai_classification", {}),
+                    "ai_classification": ai_class,
                     "classification": classification,
-                    "keywords": processing_results.get("ai_classification", {}).get("keywords", []),
-                    "summary": processing_results.get("ai_classification", {}).get("summary", ""),
+                    "keywords": ai_class.get("keywords", []),
+                    "tags": tags,  # Auto-generated tags from keywords
+                    "summary": ai_class.get("summary", ""),
                     "processing_status": "completed",
                     "processing_timestamp": datetime.now().isoformat(),
                     "processing_summary": {
@@ -1262,6 +1296,14 @@ async def upload_document_with_working_processing_pipeline(request: Request):
                         "entities_extracted": processing_results["entities_extracted"],
                         "relationships_found": processing_results["relationships_found"],
                         "graphrag_updated": processing_results["graphrag_updated"]
+                    },
+                    "entities": processing_results.get("entities_data", []),
+                    "relationships": processing_results.get("relationships_data", []),
+                    "themes": themes,
+                    "chunk_info": {
+                        "total_chunks": processing_results["chunks_created"],
+                        "chunk_size": 500,
+                        "chunking_method": "intelligent_paragraph"
                     }
                 }
             }
