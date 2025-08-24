@@ -54,6 +54,118 @@ class ExternalAIService:
         self.azure_available = bool(ai_config.azure_openai_key and ai_config.azure_openai_endpoint)
         self.openai_available = bool(ai_config.openai_api_key)
     
+    async def classify_document(self, text: str, instructions: str) -> Dict[str, Any]:
+        """Classify document according to specific instructions"""
+        prompt = f"{instructions}\n\nDocument content:\n{text}"
+        
+        # Add JSON format enforcement
+        system_prompt = "You are a document classification assistant. Always respond with valid JSON only, no additional text."
+        
+        try:
+            if self.azure_available:
+                headers = {
+                    "Content-Type": "application/json",
+                    "api-key": ai_config.azure_openai_key
+                }
+                
+                payload = {
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "max_tokens": 1000,
+                    "temperature": 0.1,  # Lower temperature for more consistent JSON
+                    "response_format": {"type": "json_object"}  # Force JSON response
+                }
+                
+                async with aiohttp.ClientSession() as session:
+                    url = f"{ai_config.azure_openai_endpoint}/openai/deployments/{ai_config.azure_deployment_name}/chat/completions?api-version=2024-02-15-preview"
+                    async with session.post(url, headers=headers, json=payload, timeout=30) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            response_text = result["choices"][0]["message"]["content"]
+                            
+                            # Try to parse as JSON
+                            try:
+                                import json
+                                parsed_json = json.loads(response_text)
+                                return {
+                                    "analysis": parsed_json,
+                                    "provider": "Azure OpenAI",
+                                    "model": ai_config.azure_deployment_name,
+                                    "success": True
+                                }
+                            except json.JSONDecodeError:
+                                # If not JSON, return as text
+                                return {
+                                    "analysis": response_text,
+                                    "provider": "Azure OpenAI",
+                                    "model": ai_config.azure_deployment_name,
+                                    "success": True
+                                }
+                        else:
+                            error_text = await response.text()
+                            return {
+                                "error": f"Azure OpenAI API error (status {response.status}): {error_text}",
+                                "success": False
+                            }
+            
+            elif self.openai_available:
+                headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {ai_config.openai_api_key}"
+                }
+                
+                payload = {
+                    "model": "gpt-3.5-turbo-1106",  # This model supports JSON mode
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "max_tokens": 1000,
+                    "temperature": 0.1,
+                    "response_format": {"type": "json_object"}
+                }
+                
+                async with aiohttp.ClientSession() as session:
+                    async with session.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=30) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            response_text = result["choices"][0]["message"]["content"]
+                            
+                            # Try to parse as JSON
+                            try:
+                                import json
+                                parsed_json = json.loads(response_text)
+                                return {
+                                    "analysis": parsed_json,
+                                    "provider": "OpenAI",
+                                    "success": True
+                                }
+                            except json.JSONDecodeError:
+                                return {
+                                    "analysis": response_text,
+                                    "provider": "OpenAI",
+                                    "success": True
+                                }
+                        else:
+                            error_text = await response.text()
+                            return {
+                                "error": f"OpenAI API error (status {response.status}): {error_text}",
+                                "success": False
+                            }
+            else:
+                return {
+                    "error": "No AI service configured",
+                    "success": False
+                }
+                
+        except Exception as e:
+            return {
+                "error": f"Classification failed: {str(e)}",
+                "success": False
+            }
+    
     async def analyze_text(self, text: str, analysis_type: str = "comprehensive") -> Dict[str, Any]:
         """Analyze text using external AI"""
         
@@ -884,11 +996,18 @@ async def analyze_document(request: Request):
         data = await request.json()
         content = data.get("content", "")
         analysis_type = data.get("analysis_type", "comprehensive")
+        task = data.get("task", None)
+        instructions = data.get("instructions", None)
         
         if not content:
             raise HTTPException(status_code=400, detail="No content provided")
         
-        result = await ai_service.analyze_text(content, analysis_type)
+        # Handle document classification task specially
+        if task == "document_classification" and instructions:
+            result = await ai_service.classify_document(content, instructions)
+        else:
+            result = await ai_service.analyze_text(content, analysis_type)
+            
         return JSONResponse(content=result)
     except Exception as e:
         return JSONResponse(
