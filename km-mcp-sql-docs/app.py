@@ -479,12 +479,14 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
+    logger.info("🏥 HEALTH CHECK CALLED - Version 2.1 with detailed logging")
     db_connected = await doc_ops.check_connection()
     return {
         "status": "healthy",
         "service": "km-mcp-sql-docs",
         "database": "connected" if db_connected else "disconnected",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.utcnow().isoformat(),
+        "version": "2.1-with-logging"
     }
 
 @app.get("/tools")
@@ -812,6 +814,8 @@ async def store_document(request: Request):
 @app.post("/tools/update-document-metadata")
 async def update_document_metadata(request: Request):
     """Update document metadata including AI classification results"""
+    print("🚨🚨🚨 METADATA UPDATE ENDPOINT CALLED - CRITICAL LOG 🚨🚨🚨")
+    logger.critical("🚨 METADATA UPDATE REQUEST RECEIVED - Version 2.1")
     logger.info("📨 RECEIVED METADATA UPDATE REQUEST")
     
     try:
