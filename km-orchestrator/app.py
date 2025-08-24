@@ -612,17 +612,28 @@ async def get_document_results(document_id: str):
             processing_summary = metadata.get("processing_summary", {})
             chunks_created = processing_summary.get("chunks_created", 0)
             
+            # Calculate total chunks
+            chunk_size = 500
+            total_chunks = chunks_created if chunks_created > 0 else (len(content) + chunk_size - 1) // chunk_size
+            
             chunks = []
             
             if stored_chunks:
                 # Use stored chunks (show first 5 for UI)
-                chunks = stored_chunks[:5]
-                print(f"Using {len(chunks)} stored chunks from metadata")
+                # Ensure chunks have the expected structure
+                for i, chunk in enumerate(stored_chunks[:5]):
+                    # Normalize chunk structure
+                    normalized_chunk = {
+                        "id": chunk.get("chunk_id", chunk.get("id", i + 1)),
+                        "content": chunk.get("content", ""),
+                        "metadata": f"Chunk {chunk.get('chunk_id', i + 1)} of {total_chunks}",
+                        "length": chunk.get("length", len(chunk.get("content", ""))),
+                        "type": chunk.get("type", "stored")
+                    }
+                    chunks.append(normalized_chunk)
+                logger.info(f"Using {len(chunks)} stored chunks from metadata")
             else:
                 # Fallback: Generate chunks from content
-                chunk_size = 500
-                total_chunks = chunks_created if chunks_created > 0 else (len(content) + chunk_size - 1) // chunk_size
-                
                 # Only show first 5 chunks for UI performance
                 for i, start in enumerate(range(0, min(len(content), chunk_size * 5), chunk_size)):
                     chunk_content = content[start:start + chunk_size]
