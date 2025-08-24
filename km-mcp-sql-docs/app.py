@@ -496,6 +496,7 @@ async def list_tools():
             {"name": "search-documents", "description": "Search documents in the database"},
             {"name": "get-document", "description": "Get a specific document by ID"},
             {"name": "update-document", "description": "Update an existing document"},
+            {"name": "update-document-metadata", "description": "Update document metadata including AI classification"},
             {"name": "delete-document", "description": "Delete a document (soft delete)"},
             {"name": "database-stats", "description": "Get database statistics"},
             {"name": "get-documents-for-search", "description": "Get documents for search indexing"}
@@ -806,6 +807,58 @@ async def store_document(request: Request):
             "success": False,
             "error": f"Request processing error: {str(e)}",
             "error_type": type(e).__name__
+        }
+
+@app.post("/tools/update-document-metadata")
+async def update_document_metadata(request: Request):
+    """Update document metadata including AI classification results"""
+    try:
+        # Parse request data
+        request_data = await request.json()
+        
+        document_id = request_data.get("document_id")
+        metadata_updates = request_data.get("metadata", {})
+        
+        if not document_id:
+            return {"success": False, "error": "document_id is required"}
+            
+        # Get current document
+        doc = await doc_ops.get_document(document_id)
+        if not doc:
+            return {"success": False, "error": f"Document {document_id} not found"}
+            
+        # Merge metadata updates
+        current_metadata = doc.metadata or {}
+        if isinstance(current_metadata, str):
+            try:
+                current_metadata = json.loads(current_metadata)
+            except:
+                current_metadata = {}
+                
+        # Update metadata
+        current_metadata.update(metadata_updates)
+        
+        # Update document
+        update_data = DocumentUpdate(metadata=current_metadata)
+        result = await doc_ops.update_document(document_id, update_data)
+        
+        if result:
+            return {
+                "success": True,
+                "message": "Document metadata updated successfully",
+                "document_id": document_id
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Failed to update document metadata"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error updating document metadata: {str(e)}")
+        return {
+            "success": False,
+            "error": f"Failed to update metadata: {str(e)}"
         }
 
 # Helper function removed - now using doc_ops.store_document directly
