@@ -922,7 +922,7 @@ async def upload_document_with_working_processing_pipeline(request: Request):
             try:
                 update_payload = {
                     "document_id": processing_results["document_id"],
-                    "metadata_update": {
+                    "metadata": {
                         "ai_classification": classification_results,
                         "classification": classification_results.get("category", classification),
                         "keywords": classification_results.get("keywords", []),
