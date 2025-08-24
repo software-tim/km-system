@@ -560,10 +560,10 @@ async def get_document_results(document_id: str):
             try:
                 # Call GraphRAG for entity extraction
                 graphrag_response = await client.post(
-                    f"{SERVICES['km-mcp-graphrag']}/extract-entities",
+                    f"{SERVICES['km-mcp-graphrag']}/tools/extract-entities",
                     json={
                         "text": content[:4000],  # Limit content for efficiency
-                        "extract_relationships": True
+                        "document_id": document_id
                     }
                 )
                 
