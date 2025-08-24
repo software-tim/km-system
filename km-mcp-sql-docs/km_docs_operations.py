@@ -274,7 +274,59 @@ class DocumentOperations:
             return None
 
     async def update_document(self, document_id: int, update_data):
-        return True
+        """Update document with new data including metadata"""
+        try:
+            conn = pyodbc.connect(self.conn_str)
+            cursor = conn.cursor()
+            
+            # Build dynamic update query based on provided fields
+            update_fields = []
+            params = []
+            
+            if update_data.title is not None:
+                update_fields.append("title = ?")
+                params.append(update_data.title)
+                
+            if update_data.content is not None:
+                update_fields.append("content = ?")
+                params.append(update_data.content)
+                
+            if update_data.classification is not None:
+                update_fields.append("classification = ?")
+                params.append(update_data.classification)
+                
+            if update_data.entities is not None:
+                update_fields.append("entities = ?")
+                params.append(json.dumps(update_data.entities))
+                
+            if update_data.metadata is not None:
+                update_fields.append("metadata = ?")
+                params.append(json.dumps(update_data.metadata))
+            
+            # Always update updated_at
+            update_fields.append("updated_at = GETDATE()")
+            
+            # Add document_id as last parameter
+            params.append(document_id)
+            
+            if update_fields:
+                query = f"UPDATE documents SET {', '.join(update_fields)} WHERE id = ?"
+                cursor.execute(query, params)
+                conn.commit()
+                
+                rows_affected = cursor.rowcount
+                cursor.close()
+                conn.close()
+                
+                return rows_affected > 0
+            else:
+                cursor.close()
+                conn.close()
+                return False
+                
+        except Exception as e:
+            logger.error(f"Update document failed: {e}")
+            return False
 
     async def delete_document(self, document_id: int):
         return True
