@@ -907,7 +907,6 @@ async def upload_document_with_working_processing_pipeline(request: Request):
                         elif isinstance(analysis, str):
                             # Try to parse JSON from string response
                             try:
-                                import json
                                 parsed = json.loads(analysis)
                                 classification_results.update(parsed)
                             except:
