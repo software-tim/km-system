@@ -918,7 +918,8 @@ async def upload_document_with_working_processing_pipeline(request: Request):
             processing_results["validation_results"]["ai_classification"] = False
         
         # Update document metadata with classification results
-        if classification_results.get("category") != "unclassified":
+        # Always update metadata if we have any classification data
+        if classification_results.get("summary") or classification_results.get("keywords") or classification_results.get("domains"):
             try:
                 update_payload = {
                     "document_id": processing_results["document_id"],
