@@ -3,7 +3,7 @@ KM Orchestrator - Intelligent Request Routing for Knowledge Management System
 FastAPI service that routes requests across all MCP services
 Updated with CORS-aware service communication
 """
-from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form, Query
 from typing import Optional
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -1452,6 +1452,113 @@ async def search_documents(request: Request):
                     "results": result.get("results", []),
                     "total": len(result.get("results", [])),
                     "query": data.get("query"),
+                    "status": "success"
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": f"Search failed: {response.text}",
+                    "results": [],
+                    "status": "error"
+                }
+                
+    except Exception as e:
+        logger.error(f"Search error: {e}")
+        return {
+            "success": False,
+            "message": f"Search error: {str(e)}",
+            "results": [],
+            "status": "error"
+        }
+
+@app.get("/api/search")
+async def search_documents_get(
+    q: str = Query(..., description="Search query"),
+    limit: int = Query(20, description="Maximum number of results"),
+    enhance: bool = Query(True, description="Enable AI-enhanced search"),
+    type: str = Query("semantic", description="Search type: semantic, keyword, or hybrid"),
+    classification: Optional[str] = Query(None, description="Filter by document classification")
+):
+    """Search documents via GET request - matches frontend expectations"""
+    try:
+        # Determine which search service to use based on type parameter
+        if type == "semantic" and enhance:
+            # Use km-mcp-search for semantic search
+            search_url = f"{SERVICES['km-mcp-search']}/search"
+            search_params = {
+                "query": q,
+                "limit": limit,
+                "search_type": "semantic"
+            }
+            
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.get(search_url, params=search_params)
+                
+                if response.status_code == 200:
+                    search_results = response.json()
+                    
+                    # Transform results to match frontend expectations
+                    transformed_results = []
+                    for result in search_results.get("results", []):
+                        transformed_results.append({
+                            "document_id": result.get("document_id"),
+                            "document_title": result.get("title", "Untitled"),
+                            "chunk_text": result.get("content", ""),
+                            "relevance_score": result.get("similarity_score", 0.0),
+                            "title": result.get("title", ""),
+                            "metadata": f"Chunk {result.get('chunk_index', 0)}",
+                            "ai_insights": result.get("ai_summary", "")
+                        })
+                    
+                    return {
+                        "success": True,
+                        "results": transformed_results,
+                        "total": len(transformed_results),
+                        "query": q,
+                        "search_type": type,
+                        "status": "success"
+                    }
+        
+        # Fall back to km-mcp-sql-docs for basic search
+        search_payload = {
+            "query": q,
+            "max_results": limit
+        }
+        
+        if classification:
+            search_payload["classification"] = classification
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{SERVICES['km-mcp-sql-docs']}/tools/search-documents",
+                json=search_payload,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                # Transform results to include relevance scores
+                transformed_results = []
+                for idx, doc in enumerate(result.get("results", [])):
+                    # Calculate a simple relevance score based on position
+                    relevance_score = 1.0 - (idx * 0.1)
+                    transformed_results.append({
+                        "document_id": doc.get("id"),
+                        "document_title": doc.get("title", "Untitled"),
+                        "chunk_text": doc.get("content", "")[:300] + "..." if len(doc.get("content", "")) > 300 else doc.get("content", ""),
+                        "relevance_score": max(0.1, relevance_score),
+                        "title": doc.get("title", ""),
+                        "metadata": f"Document created: {doc.get('created_at', 'Unknown')}",
+                        "ai_insights": doc.get("ai_classification", "")
+                    })
+                
+                return {
+                    "success": True,
+                    "results": transformed_results,
+                    "total": len(transformed_results),
+                    "query": q,
+                    "search_type": "keyword",
                     "status": "success"
                 }
             else:
