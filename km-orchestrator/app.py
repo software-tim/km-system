@@ -2,6 +2,7 @@
 KM Orchestrator - Intelligent Request Routing for Knowledge Management System
 FastAPI service that routes requests across all MCP services
 Updated with CORS-aware service communication
+Version: 2025.01.25 - Added GET search endpoint
 """
 from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form, Query
 from typing import Optional
