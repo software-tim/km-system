@@ -1511,14 +1511,17 @@ async def search_documents_get(
                             "ai_insights": result.get("ai_summary", "")
                         })
                     
-                    return {
-                        "success": True,
-                        "results": transformed_results,
-                        "total": len(transformed_results),
-                        "query": q,
-                        "search_type": type,
-                        "status": "success"
-                    }
+                    # Only return semantic results if we actually have some
+                    if transformed_results:
+                        return {
+                            "success": True,
+                            "results": transformed_results,
+                            "total": len(transformed_results),
+                            "query": q,
+                            "search_type": type,
+                            "status": "success"
+                        }
+                    # Otherwise fall through to basic search
         
         # Fall back to km-mcp-sql-docs for basic search
         search_payload = {
@@ -1541,7 +1544,9 @@ async def search_documents_get(
                 
                 # Transform results to include relevance scores
                 transformed_results = []
-                for idx, doc in enumerate(result.get("results", [])):
+                # SQL docs returns "documents" not "results"
+                documents = result.get("documents", result.get("results", []))
+                for idx, doc in enumerate(documents):
                     # Calculate a simple relevance score based on position
                     relevance_score = 1.0 - (idx * 0.1)
                     transformed_results.append({
@@ -1551,7 +1556,7 @@ async def search_documents_get(
                         "relevance_score": max(0.1, relevance_score),
                         "title": doc.get("title", ""),
                         "metadata": f"Document created: {doc.get('created_at', 'Unknown')}",
-                        "ai_insights": doc.get("ai_classification", "")
+                        "ai_insights": doc.get("metadata", {}).get("ai_classification", {}).get("summary", "")
                     })
                 
                 return {
