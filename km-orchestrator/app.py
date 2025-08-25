@@ -18,6 +18,7 @@ import logging
 import os
 import json
 import sys
+from azure_embedding_manager import AzureEmbeddingManager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -1383,6 +1384,23 @@ async def upload_document_with_working_processing_pipeline(request: Request):
                     headers={"Content-Type": "application/json"}
                 )
                 logger.info(f"✅ Final metadata update completed for document {processing_results['document_id']}")
+                
+                # Generate embeddings for semantic search
+                try:
+                    logger.info(f"🔄 Generating embeddings for document {processing_results['document_id']}")
+                    embedding_manager = AzureEmbeddingManager()
+                    await embedding_manager.process_document(
+                        document_id=processing_results['document_id'],
+                        content=content,
+                        title=processing_results.get('document_title', file_name)
+                    )
+                    logger.info(f"✅ Embeddings generated successfully for document {processing_results['document_id']}")
+                    processing_results["embeddings_generated"] = True
+                except Exception as emb_err:
+                    logger.error(f"Failed to generate embeddings: {emb_err}")
+                    processing_results["embeddings_generated"] = False
+                    # Continue anyway - document is still stored
+                    
         except Exception as e:
             logger.error(f"Failed to update final metadata: {e}")
             # Continue anyway - processing was successful
@@ -1399,7 +1417,8 @@ async def upload_document_with_working_processing_pipeline(request: Request):
                 "entities_extracted": processing_results["entities_extracted"],
                 "relationships_found": processing_results["relationships_found"],
                 "graphrag_updated": processing_results["graphrag_updated"],
-                "pipeline_version": "v2.0-working-endpoints"
+                "embeddings_generated": processing_results.get("embeddings_generated", False),
+                "pipeline_version": "v2.1-semantic-search"
             },
             "ai_classification": processing_results.get("ai_classification", {}),
             "step_timings": processing_results["step_timings"],
@@ -1484,44 +1503,37 @@ async def search_documents_get(
     try:
         # Determine which search service to use based on type parameter
         if type == "semantic" and enhance:
-            # Use km-mcp-search for semantic search
-            search_url = f"{SERVICES['km-mcp-search']}/search"
-            search_params = {
-                "query": q,
-                "limit": limit,
-                "search_type": "semantic"
-            }
-            
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.get(search_url, params=search_params)
+            # Use Azure embedding manager for real semantic search
+            try:
+                logger.info(f"Performing semantic search for query: {q}")
+                embedding_manager = AzureEmbeddingManager()
+                search_results = await embedding_manager.semantic_search(q, limit)
                 
-                if response.status_code == 200:
-                    search_results = response.json()
-                    
+                if search_results:
                     # Transform results to match frontend expectations
                     transformed_results = []
-                    for result in search_results.get("results", []):
+                    for result in search_results:
                         transformed_results.append({
-                            "document_id": result.get("document_id"),
-                            "document_title": result.get("title", "Untitled"),
-                            "chunk_text": result.get("content", ""),
-                            "relevance_score": result.get("similarity_score", 0.0),
-                            "title": result.get("title", ""),
+                            "document_id": result["document_id"],
+                            "document_title": result["document_title"],
+                            "chunk_text": result["chunk_text"],
+                            "relevance_score": result["similarity_score"],
+                            "title": result["document_title"],
                             "metadata": f"Chunk {result.get('chunk_index', 0)}",
-                            "ai_insights": result.get("ai_summary", "")
+                            "ai_insights": result.get("metadata", {}).get("ai_classification", {}).get("summary", "")
                         })
                     
-                    # Only return semantic results if we actually have some
-                    if transformed_results:
-                        return {
-                            "success": True,
-                            "results": transformed_results,
-                            "total": len(transformed_results),
-                            "query": q,
-                            "search_type": type,
-                            "status": "success"
-                        }
-                    # Otherwise fall through to basic search
+                    return {
+                        "success": True,
+                        "results": transformed_results,
+                        "total": len(transformed_results),
+                        "query": q,
+                        "search_type": "semantic",
+                        "status": "success"
+                    }
+            except Exception as e:
+                logger.error(f"Semantic search error: {e}")
+                # Fall through to basic search
         
         # Fall back to km-mcp-sql-docs for basic search
         search_payload = {
