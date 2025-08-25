@@ -696,6 +696,11 @@ async def get_document_results(document_id: str):
                 f"Classification confidence: {ai_classification.get('confidence', 0.0) * 100:.0f}%"
             ])
             
+            # Get processing time from metadata
+            processing_time = "Unknown"
+            if "processing_summary" in metadata and "total_time_seconds" in metadata["processing_summary"]:
+                processing_time = metadata["processing_summary"]["total_time_seconds"]
+            
             # Generate processing summary
             processing_summary = {
                 "chunks_count": total_chunks,
@@ -703,7 +708,7 @@ async def get_document_results(document_id: str):
                 "relationships_count": len(relationships),
                 "themes_count": len(themes),
                 "classification_confidence": ai_classification.get("confidence", 0.0),
-                "processing_time": metadata.get("processing_time", "Unknown")
+                "processing_time": processing_time
             }
             
             # Create enhanced response
@@ -713,8 +718,10 @@ async def get_document_results(document_id: str):
                 "document_metadata": {
                     "upload_date": metadata.get("upload_date", doc.get("upload_date", "")),
                     "file_type": metadata.get("file_type", doc.get("file_type", "text")),
-                    "file_size": metadata.get("file_size", len(content)),
-                    "classification": ai_classification.get("category", doc.get("classification", "unclassified"))
+                    "file_size": doc.get("file_size") or metadata.get("file_info", {}).get("size") or len(content),
+                    "file_name": doc.get("file_name") or metadata.get("file_info", {}).get("name") or doc.get("title", ""),
+                    "classification": ai_classification.get("category", doc.get("classification", "unclassified")),
+                    "processing_time_seconds": processing_time
                 },
                 "ai_classification": ai_classification,  # Full AI classification data
                 "processing_summary": processing_summary,
